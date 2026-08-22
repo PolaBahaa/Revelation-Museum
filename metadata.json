@@ -1,0 +1,6 @@
+{
+  "name": "Revelation Royal Museum",
+  "description": "An immersive 3D WebGL interactive royal museum showcasing classical architectural design and art galleries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
