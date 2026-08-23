@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Materials } from './Materials';
+import { StaticGeometryBatcher } from './StaticGeometryBatcher';
 
 export class Lighting {
   public lightingGroup: THREE.Group = new THREE.Group();
@@ -11,7 +12,7 @@ export class Lighting {
   public roomLights: Map<string, THREE.PointLight> = new Map();
   public dynamicPointLights: { light: THREE.PointLight; pos: THREE.Vector3 }[] = [];
 
-  public initLighting(): void {
+  public initLighting(batcher?: StaticGeometryBatcher): void {
     // -----------------------------------------------------------------
     // LAYER 1: GLOBAL AMBIENT & HEMISPHERE ILLUMINATION
     // Strong warm royal fill ensuring dark purple, dark walnut, and dark stone remain fully readable
@@ -36,22 +37,22 @@ export class Lighting {
     this.lightingGroup.add(this.focusSpotlight.target);
 
     // -----------------------------------------------------------------
-    // LAYER 2: FAINT NIGHT TIME SKYLIGHT BEAM (SINGLE SHADOW SOURCE)
+    // LAYER 2: FAINT NIGHT TIME SKYLIGHT BEAM (FIXED GLOBAL ARCHITECTURAL SHADOW SOURCE)
     // -----------------------------------------------------------------
     this.dirLight = new THREE.DirectionalLight(0xbda080, 1.20);
-    this.dirLight.position.set(14, 24, 18);
+    this.dirLight.position.set(22, 45, 10);
+    this.dirLight.target.position.set(0, 0, -10);
     this.dirLight.castShadow = true;
 
-    // High-quality primary shadow map configuration (1024x1024 default)
+    // High-quality static global shadow map configuration (1024x1024 default)
     this.dirLight.shadow.mapSize.width = 1024;
     this.dirLight.shadow.mapSize.height = 1024;
     this.dirLight.shadow.camera.near = 1.0;
-    this.dirLight.shadow.camera.far = 60.0;
-    const shadowDist = 24.0;
-    this.dirLight.shadow.camera.left = -shadowDist;
-    this.dirLight.shadow.camera.right = shadowDist;
-    this.dirLight.shadow.camera.top = shadowDist;
-    this.dirLight.shadow.camera.bottom = -shadowDist;
+    this.dirLight.shadow.camera.far = 130.0;
+    this.dirLight.shadow.camera.left = -65.0;
+    this.dirLight.shadow.camera.right = 65.0;
+    this.dirLight.shadow.camera.top = 75.0;
+    this.dirLight.shadow.camera.bottom = -75.0;
     this.dirLight.shadow.bias = -0.0003;
     this.dirLight.shadow.radius = 1.5;
 
@@ -63,13 +64,13 @@ export class Lighting {
     // -----------------------------------------------------------------
 
     // 1. GRAND LOBBY MONUMENTAL CHANDELIER (Center 0, 5.8, 32)
-    const lobbyChandelier = this.createChandelier(0, 5.8, 32, 1.6, false, 12);
-    this.lightingGroup.add(lobbyChandelier);
+    const lobbyChandelier = this.createChandelier(0, 5.8, 32, 1.6, false, 12, batcher, 'lobby');
+    if (!batcher) this.lightingGroup.add(lobbyChandelier);
     this.addRoomLight('lobby', 0, 4.5, 32, 0xd48838, 5.2, 30.0);
 
     // 2. CENTRAL ROTUNDA SOARING CHANDELIER (Center 0, 6.6, 0)
-    const rotundaChandelier = this.createChandelier(0, 6.6, 0, 1.5, false, 12);
-    this.lightingGroup.add(rotundaChandelier);
+    const rotundaChandelier = this.createChandelier(0, 6.6, 0, 1.5, false, 12, batcher, 'rotunda');
+    if (!batcher) this.lightingGroup.add(rotundaChandelier);
     this.addRoomLight('rotunda', 0, 5.0, 0, 0xd48838, 5.2, 30.0);
 
     // 3. ENTRANCE VESTIBULE & CORRIDORS
@@ -80,8 +81,8 @@ export class Lighting {
     this.addRoomLight('corridor_north', 0, 4.0, -20, 0xd48838, 4.5, 26.0);
 
     // 4. FINAL REVELATION GALLERY CEREMONIAL CHANDELIER (Center 0, 5.6, -62)
-    const finalChandelier = this.createChandelier(0, 5.6, -62, 1.4, false, 8);
-    this.lightingGroup.add(finalChandelier);
+    const finalChandelier = this.createChandelier(0, 5.6, -62, 1.4, false, 8, batcher, 'final_hall');
+    if (!batcher) this.lightingGroup.add(finalChandelier);
     this.addRoomLight('final_hall', 0, 4.8, -68, 0xd48838, 5.2, 30.0);
 
     // 5. EXHIBITION HALLS CHANDELIERS & ROOM LIGHTS (Halls 01 - 06)
@@ -95,65 +96,65 @@ export class Lighting {
     ];
 
     for (const h of hallSpecs) {
-      const hallChandelier = this.createChandelier(h.pos[0], h.pos[1], h.pos[2], 1.05, false, 8);
-      this.lightingGroup.add(hallChandelier);
+      const hallChandelier = this.createChandelier(h.pos[0], h.pos[1], h.pos[2], 1.05, false, 8, batcher, h.id);
+      if (!batcher) this.lightingGroup.add(hallChandelier);
       this.addRoomLight(h.id, h.pos[0], h.pos[1] - 0.6, h.pos[2], 0xd88a38, 4.8, 28.0);
     }
 
     // -----------------------------------------------------------------
     // LAYER 4: HISTORIC WALL SCONCES
     // -----------------------------------------------------------------
-    const sconceSpecs: { pos: [number, number, number]; rotY: number; isDual?: boolean }[] = [
+    const sconceSpecs: { pos: [number, number, number]; rotY: number; isDual?: boolean; zoneId: string }[] = [
       // Grand Lobby Walls
-      { pos: [-11.8, 3.4, 26], rotY: Math.PI / 2, isDual: true },
-      { pos: [-11.8, 3.4, 38], rotY: Math.PI / 2, isDual: true },
-      { pos: [11.8, 3.4, 26], rotY: -Math.PI / 2, isDual: true },
-      { pos: [11.8, 3.4, 38], rotY: -Math.PI / 2, isDual: true },
+      { pos: [-11.8, 3.4, 26], rotY: Math.PI / 2, isDual: true, zoneId: 'lobby' },
+      { pos: [-11.8, 3.4, 38], rotY: Math.PI / 2, isDual: true, zoneId: 'lobby' },
+      { pos: [11.8, 3.4, 26], rotY: -Math.PI / 2, isDual: true, zoneId: 'lobby' },
+      { pos: [11.8, 3.4, 38], rotY: -Math.PI / 2, isDual: true, zoneId: 'lobby' },
 
       // Entrance Vestibule
-      { pos: [-7.8, 3.2, 50], rotY: Math.PI / 2 },
-      { pos: [7.8, 3.2, 50], rotY: -Math.PI / 2 },
+      { pos: [-7.8, 3.2, 50], rotY: Math.PI / 2, zoneId: 'entrance' },
+      { pos: [7.8, 3.2, 50], rotY: -Math.PI / 2, zoneId: 'entrance' },
 
       // West Corridor
-      { pos: [-20, 3.2, -3.8], rotY: 0 },
-      { pos: [-20, 3.2, 3.8], rotY: Math.PI },
+      { pos: [-20, 3.2, -3.8], rotY: 0, zoneId: 'corridor_west' },
+      { pos: [-20, 3.2, 3.8], rotY: Math.PI, zoneId: 'corridor_west' },
 
       // East Corridor
-      { pos: [20, 3.2, -3.8], rotY: 0 },
-      { pos: [20, 3.2, 3.8], rotY: Math.PI },
+      { pos: [20, 3.2, -3.8], rotY: 0, zoneId: 'corridor_east' },
+      { pos: [20, 3.2, 3.8], rotY: Math.PI, zoneId: 'corridor_east' },
 
       // State North Hallway
-      { pos: [-5.8, 3.2, -20], rotY: Math.PI / 2 },
-      { pos: [5.8, 3.2, -20], rotY: -Math.PI / 2 },
+      { pos: [-5.8, 3.2, -20], rotY: Math.PI / 2, zoneId: 'corridor_north' },
+      { pos: [5.8, 3.2, -20], rotY: -Math.PI / 2, zoneId: 'corridor_north' },
 
       // Passage to Final Gallery
-      { pos: [-5.8, 3.2, -48], rotY: Math.PI / 2 },
-      { pos: [5.8, 3.2, -48], rotY: -Math.PI / 2 },
+      { pos: [-5.8, 3.2, -48], rotY: Math.PI / 2, zoneId: 'passage_final' },
+      { pos: [5.8, 3.2, -48], rotY: -Math.PI / 2, zoneId: 'passage_final' },
 
       // Final Gallery Side Piers
-      { pos: [-11.8, 3.6, -58], rotY: Math.PI / 2, isDual: true },
-      { pos: [-11.8, 3.6, -66], rotY: Math.PI / 2, isDual: true },
-      { pos: [11.8, 3.6, -58], rotY: -Math.PI / 2, isDual: true },
-      { pos: [11.8, 3.6, -66], rotY: -Math.PI / 2, isDual: true },
+      { pos: [-11.8, 3.6, -58], rotY: Math.PI / 2, isDual: true, zoneId: 'final_hall' },
+      { pos: [-11.8, 3.6, -66], rotY: Math.PI / 2, isDual: true, zoneId: 'final_hall' },
+      { pos: [11.8, 3.6, -58], rotY: -Math.PI / 2, isDual: true, zoneId: 'final_hall' },
+      { pos: [11.8, 3.6, -66], rotY: -Math.PI / 2, isDual: true, zoneId: 'final_hall' },
 
       // Exhibition Hall Sconces (Halls 01 - 06)
-      { pos: [-39.8, 3.2, 10], rotY: Math.PI / 2 },
-      { pos: [-30, 3.2, 19.8], rotY: Math.PI },
-      { pos: [-39.8, 3.2, -15], rotY: Math.PI / 2 },
-      { pos: [-30, 3.2, -24.8], rotY: Math.PI },
-      { pos: [39.8, 3.2, 10], rotY: -Math.PI / 2 },
-      { pos: [30, 3.2, 19.8], rotY: Math.PI },
-      { pos: [39.8, 3.2, -15], rotY: -Math.PI / 2 },
-      { pos: [30, 3.2, -24.8], rotY: Math.PI },
-      { pos: [-25.8, 3.2, -38], rotY: Math.PI / 2 },
-      { pos: [-15, 3.2, -47.8], rotY: Math.PI },
-      { pos: [25.8, 3.2, -38], rotY: -Math.PI / 2 },
-      { pos: [15, 3.2, -47.8], rotY: Math.PI },
+      { pos: [-39.8, 3.2, 10], rotY: Math.PI / 2, zoneId: 'hall_01' },
+      { pos: [-30, 3.2, 19.8], rotY: Math.PI, zoneId: 'hall_01' },
+      { pos: [-39.8, 3.2, -15], rotY: Math.PI / 2, zoneId: 'hall_02' },
+      { pos: [-30, 3.2, -24.8], rotY: Math.PI, zoneId: 'hall_02' },
+      { pos: [39.8, 3.2, 10], rotY: -Math.PI / 2, zoneId: 'hall_03' },
+      { pos: [30, 3.2, 19.8], rotY: Math.PI, zoneId: 'hall_03' },
+      { pos: [39.8, 3.2, -15], rotY: -Math.PI / 2, zoneId: 'hall_04' },
+      { pos: [30, 3.2, -24.8], rotY: Math.PI, zoneId: 'hall_04' },
+      { pos: [-25.8, 3.2, -38], rotY: Math.PI / 2, zoneId: 'hall_05' },
+      { pos: [-15, 3.2, -47.8], rotY: Math.PI, zoneId: 'hall_05' },
+      { pos: [25.8, 3.2, -38], rotY: -Math.PI / 2, zoneId: 'hall_06' },
+      { pos: [15, 3.2, -47.8], rotY: Math.PI, zoneId: 'hall_06' },
     ];
 
     for (const s of sconceSpecs) {
-      const sconce = this.createWallSconce(s.pos[0], s.pos[1], s.pos[2], s.rotY, s.isDual);
-      this.lightingGroup.add(sconce);
+      const sconce = this.createWallSconce(s.pos[0], s.pos[1], s.pos[2], s.rotY, s.isDual, batcher, s.zoneId);
+      if (!batcher) this.lightingGroup.add(sconce);
     }
   }
 
@@ -173,7 +174,9 @@ export class Lighting {
     cx: number, cy: number, cz: number,
     scale: number = 1.0,
     castShadow: boolean = false,
-    numArms: number = 8
+    numArms: number = 8,
+    batcher?: StaticGeometryBatcher,
+    zoneId?: string
   ): THREE.Group {
     const group = new THREE.Group();
     group.position.set(cx, cy, cz);
@@ -192,6 +195,8 @@ export class Lighting {
     // 2. Central Multi-Tier Brass Crown Hub
     const hubGeo = new THREE.CylinderGeometry(0.40 * scale, 0.50 * scale, 0.55 * scale, 16);
     const hubMesh = new THREE.Mesh(hubGeo, Materials.goldLeaf);
+    hubMesh.castShadow = castShadow;
+    hubMesh.receiveShadow = true;
     group.add(hubMesh);
 
     // Upper Decorative Scrollwork Ring
@@ -199,12 +204,15 @@ export class Lighting {
     const upperRingMesh = new THREE.Mesh(upperRingGeo, Materials.goldLeaf);
     upperRingMesh.rotation.x = Math.PI / 2;
     upperRingMesh.position.y = 0.25 * scale;
+    upperRingMesh.receiveShadow = true;
     group.add(upperRingMesh);
 
     const lowerFinialGeo = new THREE.ConeGeometry(0.28 * scale, 0.45 * scale, 12);
     const lowerFinialMesh = new THREE.Mesh(lowerFinialGeo, Materials.antiqueBronze);
     lowerFinialMesh.position.y = -0.50 * scale;
     lowerFinialMesh.rotation.x = Math.PI;
+    lowerFinialMesh.castShadow = castShadow;
+    lowerFinialMesh.receiveShadow = true;
     group.add(lowerFinialMesh);
 
     // 3. Curved Arms, Candle Sleeves & Flame Bulbs
@@ -286,18 +294,22 @@ export class Lighting {
 
     // 4. Primary Downward Warm Point Light for Chandeliers
     const pLight = new THREE.PointLight(0xe89838, 5.2 * scale, 24.0 * scale, 1.8);
-    pLight.position.set(0, 0, 0);
+    pLight.position.set(cx, cy, cz);
     pLight.castShadow = false;
-    group.add(pLight);
+    this.lightingGroup.add(pLight);
 
     // 5. Ceiling Uplight to illuminate coffered ceiling & moldings overhead
     const topUplight = new THREE.PointLight(0xdf8830, 3.2 * scale, 18.0 * scale, 1.8);
-    topUplight.position.set(0, 0.8 * scale, 0);
+    topUplight.position.set(cx, cy + 0.8 * scale, cz);
     topUplight.castShadow = false;
-    group.add(topUplight);
+    this.lightingGroup.add(topUplight);
 
     this.dynamicPointLights.push({ light: pLight, pos: new THREE.Vector3(cx, cy, cz) });
     this.dynamicPointLights.push({ light: topUplight, pos: new THREE.Vector3(cx, cy + 0.8 * scale, cz) });
+
+    if (batcher) {
+      batcher.add(group, zoneId);
+    }
 
     return group;
   }
@@ -308,7 +320,9 @@ export class Lighting {
   public createWallSconce(
     x: number, y: number, z: number,
     rotationY: number,
-    isDual: boolean = false
+    isDual: boolean = false,
+    batcher?: StaticGeometryBatcher,
+    zoneId?: string
   ): THREE.Group {
     const group = new THREE.Group();
     group.position.set(x, y, z);
@@ -359,6 +373,10 @@ export class Lighting {
       group.add(bulbMesh);
     }
 
+    if (batcher) {
+      batcher.add(group, zoneId);
+    }
+
     return group;
   }
 
@@ -392,5 +410,45 @@ export class Lighting {
     group.add(headMesh);
 
     return group;
+  }
+
+  /**
+   * Updates visibility of secondary dynamic point lights according to active light budget.
+   * Keeps the lights closest to the player active, while preserving all main architectural/ambient illumination.
+   */
+  public updateSecondaryPointLights(playerPos: THREE.Vector3, maxBudget = 30): void {
+    if (this.dynamicPointLights.length <= maxBudget) {
+      for (let i = 0; i < this.dynamicPointLights.length; i++) {
+        this.dynamicPointLights[i].light.visible = true;
+      }
+      return;
+    }
+
+    // Sort by squared distance to player position (allocate budget to closest lights)
+    const withDist = this.dynamicPointLights.map(item => ({
+      item,
+      distSq: item.pos.distanceToSquared(playerPos)
+    }));
+    withDist.sort((a, b) => a.distSq - b.distSq);
+
+    for (let i = 0; i < withDist.length; i++) {
+      withDist[i].item.light.visible = i < maxBudget;
+    }
+  }
+
+  /**
+   * Returns current active light count in O(N) where N~30 without any scene graph traversal
+   */
+  public getActiveLightCount(): number {
+    let count = 0;
+    if (this.ambientLight && this.ambientLight.visible) count++;
+    if (this.hemiLight && this.hemiLight.visible) count++;
+    if (this.playerLantern && this.playerLantern.visible) count++;
+    if (this.dirLight && this.dirLight.visible) count++;
+    if (this.focusSpotlight && this.focusSpotlight.visible) count++;
+    for (let i = 0; i < this.dynamicPointLights.length; i++) {
+      if (this.dynamicPointLights[i].light.visible) count++;
+    }
+    return count;
   }
 }

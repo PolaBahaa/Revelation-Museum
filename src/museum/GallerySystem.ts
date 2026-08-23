@@ -25,8 +25,15 @@ export class GallerySystem {
     this.paintingManager.initAllArtworks();
   }
 
-  public getNearestArtwork(playerPos: THREE.Vector3): { artwork: Artwork; distance: number } | null {
-    return this.paintingManager.getNearestArtwork(playerPos);
+  public async preloadAndPrewarmAll(
+    renderer: THREE.WebGLRenderer,
+    onProgress?: (loaded: number, total: number, msg: string) => void
+  ): Promise<void> {
+    return this.paintingManager.preloadAndPrewarmAll(renderer, onProgress);
+  }
+
+  public getNearestArtwork(playerPos: THREE.Vector3, forceRecalculate = false): { artwork: Artwork; distance: number } | null {
+    return this.paintingManager.getNearestArtwork(playerPos, forceRecalculate);
   }
 
   public getArtworkByNumber(num: number): Artwork | undefined {

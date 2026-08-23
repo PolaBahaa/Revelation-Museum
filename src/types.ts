@@ -36,6 +36,8 @@ export interface WallBoundingBox {
   maxZ: number;
   minY?: number;
   maxY?: number;
+  height?: number;
+  roomId?: string;
   isObstacle?: boolean; // For pillars/columns
 }
 
@@ -46,7 +48,9 @@ export interface PerformanceStats {
   textures: number;
   geometries: number;
   activeLights: number;
-  qualityLevel: 'HIGH' | 'MEDIUM' | 'LOW' | 'EMERGENCY';
+  qualityLevel: string;
+  adaptiveLevel?: string;
+  performanceMode?: string;
 }
 
 export interface PlayerState {
@@ -65,3 +69,10 @@ export interface PlayerState {
 }
 
 export type QualitySetting = 'low' | 'medium' | 'high';
+
+export interface PrewarmState {
+  loaded: number;
+  total: number;
+  isComplete: boolean;
+  statusMessage: string;
+}

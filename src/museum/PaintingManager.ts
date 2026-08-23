@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Artwork } from '../types';
 import { ALL_ARTWORKS } from './MuseumData';
 import { Lighting } from './Lighting';
+import { DiagnosticProfiler } from './DiagnosticProfiler';
 
 export interface InteractiveArtworkMesh {
   artwork: Artwork;
@@ -16,6 +17,16 @@ export interface WallSlot {
   rotY: number;
 }
 
+interface SlotRuntimeItem {
+  art: Artwork;
+  slot: WallSlot;
+  group: THREE.Group;
+  interactiveItem: InteractiveArtworkMesh;
+  loaded: boolean;
+  texture?: THREE.Texture;
+  mesh?: THREE.Mesh;
+}
+
 // Architectural Bay Constraints:
 // Pilaster spacing in standard gallery halls is ~3.6m to 4.0m with 0.46m capital widths.
 // MAX_ARTWORK_WIDTH = 2.95m guarantees a visible 0.35m - 0.50m architectural clearance gap.
@@ -23,10 +34,18 @@ const MAX_ARTWORK_WIDTH = 2.95;
 const MAX_ARTWORK_HEIGHT = 2.45;
 
 export class PaintingManager {
+  public static PREWARMING_ENABLED = true;
+  private static globalTextureCache = new Map<string, Promise<THREE.Texture | null>>();
+  private static loadedTexturesMap = new Map<string, THREE.Texture>();
+
   public galleryGroup: THREE.Group = new THREE.Group();
   public interactiveArtworks: InteractiveArtworkMesh[] = [];
   private lighting: Lighting;
   private textureLoader = new THREE.TextureLoader();
+  private slotRuntimeItems: SlotRuntimeItem[] = [];
+  private isPrewarmed = false;
+  private prewarmPromise: Promise<void> | null = null;
+  private isDisposed = false;
 
   // All 36 artwork slots centered directly within architectural wall bays between pilasters
   private wallSlots: WallSlot[] = [
@@ -101,7 +120,13 @@ export class PaintingManager {
     this.lighting = lighting;
   }
 
+  public dispose(): void {
+    this.isDisposed = true;
+  }
+
   public initAllArtworks(): void {
+    if (this.slotRuntimeItems.length > 0) return;
+
     for (const slot of this.wallSlots) {
       const art = ALL_ARTWORKS.find(a => a.number === slot.artworkNumber);
       if (!art) continue;
@@ -136,9 +161,6 @@ export class PaintingManager {
   }
 
   private setupArtworkSlot(art: Artwork, slot: WallSlot): void {
-    const numStr = String(art.number).padStart(2, '0');
-    const pngPath = `/paintings/${numStr}.png`;
-
     const group = new THREE.Group();
     group.position.set(slot.pos[0], slot.pos[1], slot.pos[2]);
     group.rotation.y = slot.rotY;
@@ -167,102 +189,263 @@ export class PaintingManager {
     };
     this.interactiveArtworks.push(interactiveItem);
 
-    if (art.number === 1) {
-      console.log(`[Artwork 01 Dev Diagnostic] Initializing Artwork ${numStr}`);
-      console.log(`Artwork ID: ${numStr}`);
-      console.log(`Expected URL: ${pngPath}`);
-      console.log(`Position: x=${slot.pos[0]}, y=${slot.pos[1]}, z=${slot.pos[2]}`);
-    }
-
-    // Asynchronously load PNG image
-    this.textureLoader.load(
-      pngPath,
-      (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        const img = texture.image;
-
-        if (img && img.width > 0 && img.height > 0) {
-          const dims = this.calculateArtworkDimensions(img.width, img.height);
-          let targetW = dims.width;
-          let targetH = dims.height;
-
-          art.width = targetW;
-          art.height = targetH;
-
-          // Create clean PNG plane mesh directly attached to museum wall with 0.01m offset
-          const pngGeo = new THREE.PlaneGeometry(targetW, targetH);
-          const pngMat = new THREE.MeshStandardMaterial({
-            map: texture,
-            transparent: true,
-            roughness: 0.25,
-            metalness: 0.02,
-            side: THREE.FrontSide
-          });
-
-          const pngMesh = new THREE.Mesh(pngGeo, pngMat);
-          pngMesh.position.set(0, 0, 0.01);
-          pngMesh.castShadow = false;
-          pngMesh.receiveShadow = false;
-
-          group.add(pngMesh);
-
-          // Update local and world matrices explicitly so Three.js renders it immediately
-          pngMesh.updateMatrix();
-          pngMesh.updateMatrixWorld(true);
-          pngMesh.matrixAutoUpdate = false;
-
-          group.updateMatrix();
-          group.updateMatrixWorld(true);
-          group.matrixAutoUpdate = false;
-
-          // Perform one-time initialization bounding box validation
-          pngGeo.computeBoundingBox();
-          if (pngGeo.boundingBox) {
-            const currentWidth = pngGeo.boundingBox.max.x - pngGeo.boundingBox.min.x;
-            if (currentWidth > MAX_ARTWORK_WIDTH + 0.01) {
-              const scaleFactor = MAX_ARTWORK_WIDTH / currentWidth;
-              pngMesh.scale.set(scaleFactor, scaleFactor, 1.0);
-              pngMesh.updateMatrix();
-              pngMesh.updateMatrixWorld(true);
-            }
-          }
-
-          // Update interaction record
-          interactiveItem.mesh = pngMesh;
-          interactiveItem.isRealPNG = true;
-          pngMesh.getWorldPosition(interactiveItem.worldPosition);
-
-          if (art.number === 1) {
-            console.log(`[Artwork 01 Dev Diagnostic] SUCCESS: Artwork ${numStr} Loaded!`);
-            console.log(`Texture loaded: YES (${img.width}x${img.height} px)`);
-            console.log(`Scale: w=${targetW.toFixed(2)}m, h=${targetH.toFixed(2)}m (Max bay width: ${MAX_ARTWORK_WIDTH}m)`);
-          }
-        }
-      },
-      undefined,
-      (err) => {
-        if (art.number === 1) {
-          console.error(`[Artwork 01 Dev Diagnostic] ERROR: Failed to load texture at URL: ${pngPath}`, err);
-        }
-      }
-    );
+    this.slotRuntimeItems.push({
+      art,
+      slot,
+      group,
+      interactiveItem,
+      loaded: false
+    });
   }
 
-  public getNearestArtwork(playerPos: THREE.Vector3): { artwork: Artwork; distance: number } | null {
-    let nearest: Artwork | null = null;
-    let minDistance = Infinity;
+  /**
+   * Preloads all 36 artwork textures, configures their colorSpace & anisotropy,
+   * constructs the physical meshes, and explicitly prewarms/uploads them into GPU memory.
+   * Uses Promise-caching to guarantee strictly one logical texture load per URL.
+   */
+  public preloadAndPrewarmAll(
+    renderer: THREE.WebGLRenderer,
+    onProgress?: (loaded: number, total: number, msg: string) => void
+  ): Promise<void> {
+    if (this.isPrewarmed) {
+      return Promise.resolve();
+    }
+    if (this.prewarmPromise) {
+      return this.prewarmPromise;
+    }
 
-    for (const item of this.interactiveArtworks) {
-      const dist = playerPos.distanceTo(item.worldPosition);
-      if (dist < minDistance) {
-        minDistance = dist;
+    if (!PaintingManager.PREWARMING_ENABLED) {
+      console.log('[PaintingManager] Prewarming disabled via configuration switch.');
+      this.isPrewarmed = true;
+      if (onProgress) onProgress(36, 36, 'Ready (Prewarming skipped)');
+      return Promise.resolve();
+    }
+
+    this.prewarmPromise = this.executePrewarm(renderer, onProgress);
+    return this.prewarmPromise;
+  }
+
+  private async executePrewarm(
+    renderer: THREE.WebGLRenderer,
+    onProgress?: (loaded: number, total: number, msg: string) => void
+  ): Promise<void> {
+    this.initAllArtworks();
+
+    const profiler = DiagnosticProfiler.getInstance();
+    profiler.recordPrewarmStart();
+
+    const total = this.slotRuntimeItems.length;
+    let completedCount = 0;
+    const maxAnisotropy = renderer.capabilities ? renderer.capabilities.getMaxAnisotropy() : 8;
+    const chunkSize = 4;
+
+    for (let i = 0; i < total; i += chunkSize) {
+      if (this.isDisposed) return;
+
+      const chunk = this.slotRuntimeItems.slice(i, i + chunkSize);
+
+      await Promise.all(
+        chunk.map((item) =>
+          this.loadAndPrewarmSingleArtwork(item, renderer, maxAnisotropy).then(() => {
+            completedCount++;
+            if (onProgress && !this.isDisposed) {
+              onProgress(
+                completedCount,
+                total,
+                `Preparing artwork ${completedCount} of ${total}...`
+              );
+            }
+          })
+        )
+      );
+
+      // Yield execution to browser event loop
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    this.isPrewarmed = true;
+  }
+
+  /**
+   * Fetches a texture with global caching to guarantee exactly one network request per URL.
+   */
+  private fetchTextureCached(url: string, artworkNumber: number): Promise<THREE.Texture | null> {
+    const profiler = DiagnosticProfiler.getInstance();
+
+    if (PaintingManager.loadedTexturesMap.has(url)) {
+      const tex = PaintingManager.loadedTexturesMap.get(url)!;
+      const img = tex.image as HTMLImageElement | undefined;
+      profiler.recordTextureRequest(artworkNumber, url);
+      profiler.recordTextureLoaded(artworkNumber, img?.width || 512, img?.height || 512);
+      return Promise.resolve(tex);
+    }
+
+    if (PaintingManager.globalTextureCache.has(url)) {
+      profiler.recordTextureRequest(artworkNumber, url);
+      return PaintingManager.globalTextureCache.get(url)!;
+    }
+
+    profiler.recordTextureRequest(artworkNumber, url);
+
+    const loadPromise = new Promise<THREE.Texture | null>((resolve) => {
+      this.textureLoader.load(
+        url,
+        (texture) => {
+          PaintingManager.loadedTexturesMap.set(url, texture);
+          resolve(texture);
+        },
+        undefined,
+        (err) => {
+          profiler.recordTextureError(artworkNumber, url, err);
+          resolve(null);
+        }
+      );
+    });
+
+    PaintingManager.globalTextureCache.set(url, loadPromise);
+    return loadPromise;
+  }
+
+  private async loadAndPrewarmSingleArtwork(
+    item: SlotRuntimeItem,
+    renderer: THREE.WebGLRenderer,
+    maxAnisotropy: number
+  ): Promise<void> {
+    if (item.loaded || this.isDisposed) {
+      return;
+    }
+
+    const numStr = String(item.art.number).padStart(2, '0');
+    const pngPath = `/paintings/${numStr}.png`;
+    const profiler = DiagnosticProfiler.getInstance();
+
+    const texture = await this.fetchTextureCached(pngPath, item.art.number);
+    if (!texture || this.isDisposed) {
+      return;
+    }
+
+    try {
+      // Configure exact color space & texture filtering
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(maxAnisotropy, 8);
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = true;
+
+      const img = texture.image as HTMLImageElement | undefined;
+      if (img && img.width > 0 && img.height > 0) {
+        profiler.recordTextureLoaded(item.art.number, img.width, img.height);
+        const dims = this.calculateArtworkDimensions(img.width, img.height);
+        const targetW = dims.width;
+        const targetH = dims.height;
+
+        item.art.width = targetW;
+        item.art.height = targetH;
+
+        // Create clean PNG plane mesh directly attached to museum wall with 0.01m offset
+        const pngGeo = new THREE.PlaneGeometry(targetW, targetH);
+        const pngMat = new THREE.MeshStandardMaterial({
+          map: texture,
+          transparent: true,
+          roughness: 0.25,
+          metalness: 0.02,
+          side: THREE.FrontSide
+        });
+
+        const pngMesh = new THREE.Mesh(pngGeo, pngMat);
+        pngMesh.position.set(0, 0, 0.01);
+        pngMesh.castShadow = false;
+        pngMesh.receiveShadow = false;
+
+        item.group.add(pngMesh);
+
+        // Update local and world matrices explicitly
+        pngMesh.updateMatrix();
+        pngMesh.updateMatrixWorld(true);
+        pngMesh.matrixAutoUpdate = false;
+
+        item.group.updateMatrix();
+        item.group.updateMatrixWorld(true);
+        item.group.matrixAutoUpdate = false;
+
+        // Perform bounding box validation
+        pngGeo.computeBoundingBox();
+        if (pngGeo.boundingBox) {
+          const currentWidth = pngGeo.boundingBox.max.x - pngGeo.boundingBox.min.x;
+          if (currentWidth > MAX_ARTWORK_WIDTH + 0.01) {
+            const scaleFactor = MAX_ARTWORK_WIDTH / currentWidth;
+            pngMesh.scale.set(scaleFactor, scaleFactor, 1.0);
+            pngMesh.updateMatrix();
+            pngMesh.updateMatrixWorld(true);
+          }
+        }
+
+        // Update interaction record
+        item.interactiveItem.mesh = pngMesh;
+        item.interactiveItem.isRealPNG = true;
+        pngMesh.getWorldPosition(item.interactiveItem.worldPosition);
+
+        item.texture = texture;
+        item.mesh = pngMesh;
+        item.loaded = true;
+
+        // Explicit GPU Texture Initialization
+        renderer.initTexture(texture);
+        profiler.recordTextureGpuInit(item.art.number);
+      }
+    } catch (err) {
+      console.warn(`[PaintingManager] Error setting up artwork ${numStr}:`, err);
+    }
+  }
+
+  // Cached nearest artwork query to eliminate allocations and per-frame distance calculations
+  private lastQueryPos = new THREE.Vector3(Infinity, Infinity, Infinity);
+  private lastQueryTime = 0;
+  private cachedNearestResult: { artwork: Artwork; distance: number } = {
+    artwork: ALL_ARTWORKS[0],
+    distance: Infinity,
+  };
+  private hasCachedNearest = false;
+
+  public getNearestArtwork(playerPos: THREE.Vector3, forceRecalculate = false): { artwork: Artwork; distance: number } | null {
+    const now = performance.now();
+    const dxPos = playerPos.x - this.lastQueryPos.x;
+    const dzPos = playerPos.z - this.lastQueryPos.z;
+    const distMovedSq = dxPos * dxPos + dzPos * dzPos;
+
+    // Return cached result if player has moved less than 0.25m and within 100ms
+    if (!forceRecalculate && distMovedSq < 0.0625 && (now - this.lastQueryTime) < 100) {
+      return this.hasCachedNearest ? this.cachedNearestResult : null;
+    }
+
+    this.lastQueryPos.copy(playerPos);
+    this.lastQueryTime = now;
+
+    let nearest: Artwork | null = null;
+    let minDistanceSq = Infinity;
+    const maxThresholdSq = 6.0 * 6.0; // 36.0 m^2
+
+    for (let i = 0; i < this.interactiveArtworks.length; i++) {
+      const item = this.interactiveArtworks[i];
+      const dx = playerPos.x - item.worldPosition.x;
+      const dy = playerPos.y - item.worldPosition.y;
+      const dz = playerPos.z - item.worldPosition.z;
+      const distSq = dx * dx + dy * dy + dz * dz;
+
+      if (distSq < minDistanceSq) {
+        minDistanceSq = distSq;
         nearest = item.artwork;
       }
     }
 
-    if (nearest && minDistance <= 6.0) {
-      return { artwork: nearest, distance: minDistance };
+    if (nearest && minDistanceSq <= maxThresholdSq) {
+      this.cachedNearestResult.artwork = nearest;
+      this.cachedNearestResult.distance = Math.sqrt(minDistanceSq);
+      this.hasCachedNearest = true;
+      return this.cachedNearestResult;
     }
+
+    this.hasCachedNearest = false;
     return null;
   }
 

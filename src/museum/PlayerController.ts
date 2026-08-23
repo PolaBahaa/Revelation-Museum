@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { CollisionSystem } from './CollisionSystem';
 import { GallerySystem } from './GallerySystem';
 import { MUSEUM_HALLS } from './MuseumData';
+import { DiagnosticProfiler } from './DiagnosticProfiler';
 import { PlayerState, Artwork } from '../types';
 
 export class PlayerController {
@@ -23,8 +24,18 @@ export class PlayerController {
   // Keyboard input state
   private keys: { [key: string]: boolean } = {};
 
-  // Pointer lock state
+  // Pointer lock & frame-aligned mouse input accumulation
   public isPointerLocked = false;
+  private pendingMouseX = 0;
+  private pendingMouseY = 0;
+  private mouseEventsInFrame = 0;
+
+  // Diagnostic metrics for input alignment
+  public lastMouseEventsPerFrame = 0;
+  public lastAccumulatedMouseX = 0;
+  public lastAccumulatedMouseY = 0;
+  public lastYawDelta = 0;
+  public lastPitchDelta = 0;
 
   // Inspect / Fullscreen Mode
   public isInspectMode = false;
@@ -54,13 +65,20 @@ export class PlayerController {
   private onFocusArtwork?: (artwork: Artwork) => void;
   private lastStateNotifyTime = 0;
   private lastHallId = '';
+  private lastNotifiedHallId = '';
+  private lastHallName = 'Grand Entrance';
+  private lastHallCheckX = Infinity;
+  private lastHallCheckZ = Infinity;
   private lastNearestArtworkNum: number | null = null;
   private lastPointerLock = false;
   private lastInspectMode = false;
+  private lastInspectArtwork: Artwork | null = null;
 
   // Reusable static calculation objects to avoid GC overhead
   private tempMoveVector = new THREE.Vector3();
   private tempEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+  private cachedPosArray: [number, number, number] = [0, 0, 0];
+  private cachedRotArray: [number, number] = [0, 0];
 
   constructor(
     camera: THREE.PerspectiveCamera,
@@ -115,6 +133,9 @@ export class PlayerController {
   }
 
   public unlockPointer(): void {
+    this.pendingMouseX = 0;
+    this.pendingMouseY = 0;
+    this.mouseEventsInFrame = 0;
     if (document.pointerLockElement) {
       document.exitPointerLock();
     }
@@ -122,6 +143,12 @@ export class PlayerController {
 
   private handlePointerLockChange = (): void => {
     this.isPointerLocked = document.pointerLockElement === this.domElement;
+    if (!this.isPointerLocked) {
+      this.pendingMouseX = 0;
+      this.pendingMouseY = 0;
+      this.mouseEventsInFrame = 0;
+    }
+    this.notifyState(true);
   };
 
   private handlePointerLockError = (): void => {
@@ -131,12 +158,10 @@ export class PlayerController {
   private handleMouseMove = (e: MouseEvent): void => {
     if (!this.isPointerLocked || this.isInspectMode || this.isNavigating) return;
 
-    this.yaw -= e.movementX * this.mouseSensitivity;
-    this.pitch -= e.movementY * this.mouseSensitivity;
-
-    // Clamp pitch between -85 deg and +85 deg
-    const maxPitch = Math.PI / 2 - 0.08;
-    this.pitch = Math.max(-maxPitch, Math.min(maxPitch, this.pitch));
+    // Accumulate raw movement deltas without modifying camera rotation asynchronously
+    this.pendingMouseX += (e.movementX || 0);
+    this.pendingMouseY += (e.movementY || 0);
+    this.mouseEventsInFrame++;
   };
 
   private handleKeyDown = (e: KeyboardEvent): void => {
@@ -306,9 +331,12 @@ export class PlayerController {
     // Resolve collision to prevent spawning inside wall or column geometry
     const [resX, resZ] = this.collisionSystem.resolveCollision(rawX, rawZ);
 
-    const targetYaw = rotY + Math.PI;
+    // Calculate exact horizontal direction from final player position toward the artwork
+    const dirX = artPos.x - resX;
+    const dirZ = artPos.z - resZ;
+    const targetYaw = Math.atan2(dirX, dirZ) + Math.PI;
 
-    // Normalize yaw difference to shortest angle direction
+    // Normalize yaw difference to shortest angle direction across [-PI, PI]
     let currentYaw = this.yaw;
     let diff = (targetYaw - currentYaw) % (Math.PI * 2);
     if (diff < -Math.PI) diff += Math.PI * 2;
@@ -335,6 +363,11 @@ export class PlayerController {
 
   public update(delta: number): void {
     if (this.isNavigating) {
+      // Clear pending mouse inputs during cinematic navigation
+      this.pendingMouseX = 0;
+      this.pendingMouseY = 0;
+      this.mouseEventsInFrame = 0;
+
       // Smooth cinematic travel easing (easeInOutQuad / smoothstep)
       this.navProgress += delta / this.navDuration;
       const t = Math.min(1.0, this.navProgress);
@@ -348,7 +381,44 @@ export class PlayerController {
         this.isNavigating = false;
       }
     } else if (!this.isInspectMode) {
-      // Standard FPS WASD movement
+      // 1. Consume accumulated frame-aligned mouse look delta (applied once per RAF frame)
+      if (this.isPointerLocked) {
+        const mouseX = this.pendingMouseX;
+        const mouseY = this.pendingMouseY;
+        this.lastMouseEventsPerFrame = this.mouseEventsInFrame;
+        this.lastAccumulatedMouseX = mouseX;
+        this.lastAccumulatedMouseY = mouseY;
+
+        this.pendingMouseX = 0;
+        this.pendingMouseY = 0;
+        this.mouseEventsInFrame = 0;
+
+        if (mouseX !== 0 || mouseY !== 0) {
+          const yawDelta = mouseX * this.mouseSensitivity;
+          const pitchDelta = mouseY * this.mouseSensitivity;
+
+          this.yaw -= yawDelta;
+          this.pitch -= pitchDelta;
+
+          // Clamp pitch between -85 deg and +85 deg (preserving exact original limits)
+          const maxPitch = Math.PI / 2 - 0.08;
+          this.pitch = Math.max(-maxPitch, Math.min(maxPitch, this.pitch));
+
+          this.lastYawDelta = yawDelta;
+          this.lastPitchDelta = pitchDelta;
+        } else {
+          this.lastYawDelta = 0;
+          this.lastPitchDelta = 0;
+        }
+      } else {
+        this.pendingMouseX = 0;
+        this.pendingMouseY = 0;
+        this.mouseEventsInFrame = 0;
+        this.lastYawDelta = 0;
+        this.lastPitchDelta = 0;
+      }
+
+      // 2. Standard FPS WASD movement
       const speed = (this.keys['ShiftLeft'] || this.keys['ShiftRight']) ? this.sprintSpeed : this.walkSpeed;
       const moveDistance = speed * delta;
 
@@ -375,6 +445,10 @@ export class PlayerController {
         this.position.x = resolvedX;
         this.position.z = resolvedZ;
       }
+    } else {
+      this.pendingMouseX = 0;
+      this.pendingMouseY = 0;
+      this.mouseEventsInFrame = 0;
     }
 
     // Update camera matrix
@@ -386,67 +460,89 @@ export class PlayerController {
     this.notifyState();
   }
 
-  private notifyState(): void {
+  private notifyState(force = false): void {
     if (!this.onStateUpdate) return;
 
-    const now = performance.now();
-    const timeSinceLast = now - this.lastStateNotifyTime;
+    // 1. Spatial Hall Detection (Throttled by 0.5m movement threshold)
+    const dxHall = this.position.x - this.lastHallCheckX;
+    const dzHall = this.position.z - this.lastHallCheckZ;
+    if (force || (dxHall * dxHall + dzHall * dzHall) > 0.25) {
+      this.lastHallCheckX = this.position.x;
+      this.lastHallCheckZ = this.position.z;
 
-    let currentHallId = 'entrance';
-    let currentHallName = 'Grand Entrance';
+      let hallId = 'entrance';
+      let hallName = 'Grand Entrance';
 
-    for (const hall of MUSEUM_HALLS) {
-      const [cx, cy, cz] = hall.center;
-      const [w, h, d] = hall.size;
+      for (let i = 0; i < MUSEUM_HALLS.length; i++) {
+        const hall = MUSEUM_HALLS[i];
+        const [cx, cy, cz] = hall.center;
+        const [w, h, d] = hall.size;
 
-      if (
-        Math.abs(this.position.x - cx) <= w / 2 + 1 &&
-        Math.abs(this.position.z - cz) <= d / 2 + 1
-      ) {
-        currentHallId = hall.id;
-        currentHallName = `${hall.code}: ${hall.title}`;
-        break;
+        if (
+          Math.abs(this.position.x - cx) <= w / 2 + 1 &&
+          Math.abs(this.position.z - cz) <= d / 2 + 1
+        ) {
+          hallId = hall.id;
+          hallName = `${hall.code}: ${hall.title}`;
+          break;
+        }
       }
+
+      if (this.position.z > 42) {
+        hallId = 'entrance';
+        hallName = 'Grand Entrance';
+      } else if (this.position.z > 20 && Math.abs(this.position.x) < 12) {
+        hallId = 'lobby';
+        hallName = 'Grand Lobby';
+      } else if (Math.abs(this.position.z) <= 12 && Math.abs(this.position.x) <= 12) {
+        hallId = 'rotunda';
+        hallName = 'Central Rotunda';
+      } else if (this.position.z < -52) {
+        hallId = 'final_hall';
+        hallName = 'Final Revelation Gallery';
+      }
+
+      this.lastHallId = hallId;
+      this.lastHallName = hallName;
     }
 
-    if (this.position.z > 42) {
-      currentHallId = 'entrance';
-      currentHallName = 'Grand Entrance';
-    } else if (this.position.z > 20 && Math.abs(this.position.x) < 12) {
-      currentHallId = 'lobby';
-      currentHallName = 'Grand Lobby';
-    } else if (Math.abs(this.position.z) <= 12 && Math.abs(this.position.x) <= 12) {
-      currentHallId = 'rotunda';
-      currentHallName = 'Central Rotunda';
-    } else if (this.position.z < -52) {
-      currentHallId = 'final_hall';
-      currentHallName = 'Final Revelation Gallery';
-    }
-
-    const nearest = this.gallerySystem.getNearestArtwork(this.position);
+    // 2. Query nearest artwork (using cached distance in GallerySystem)
+    const nearest = this.gallerySystem.getNearestArtwork(this.position, force);
     const nearestNum = nearest ? nearest.artwork.number : null;
 
+    // 3. Evaluate whether UI-visible React state has ACTUALLY changed
     const stateChanged =
-      currentHallId !== this.lastHallId ||
+      force ||
+      this.lastHallId !== this.lastNotifiedHallId ||
       nearestNum !== this.lastNearestArtworkNum ||
       this.isPointerLocked !== this.lastPointerLock ||
-      this.isInspectMode !== this.lastInspectMode;
+      this.isInspectMode !== this.lastInspectMode ||
+      this.inspectArtwork !== this.lastInspectArtwork;
 
-    if (!stateChanged && timeSinceLast < 100) {
+    // DO NOT invoke React callback unless UI state genuinely changed
+    if (!stateChanged) {
       return;
     }
 
-    this.lastStateNotifyTime = now;
-    this.lastHallId = currentHallId;
+    this.lastStateNotifyTime = performance.now();
+    this.lastNotifiedHallId = this.lastHallId;
     this.lastNearestArtworkNum = nearestNum;
     this.lastPointerLock = this.isPointerLocked;
     this.lastInspectMode = this.isInspectMode;
+    this.lastInspectArtwork = this.inspectArtwork;
+
+    this.cachedPosArray[0] = this.position.x;
+    this.cachedPosArray[1] = this.position.y;
+    this.cachedPosArray[2] = this.position.z;
+
+    this.cachedRotArray[0] = this.pitch;
+    this.cachedRotArray[1] = this.yaw;
 
     this.onStateUpdate({
-      position: [this.position.x, this.position.y, this.position.z],
-      rotation: [this.pitch, this.yaw],
-      currentHallId,
-      currentHallName,
+      position: this.cachedPosArray,
+      rotation: this.cachedRotArray,
+      currentHallId: this.lastHallId,
+      currentHallName: this.lastHallName,
       nearestArtwork: nearest ? nearest.artwork : null,
       distanceToNearestArtwork: nearest ? nearest.distance : Infinity,
       isPointerLocked: this.isPointerLocked,
@@ -455,6 +551,14 @@ export class PlayerController {
       isInspectMode: this.isInspectMode,
       inspectArtwork: this.inspectArtwork
     });
+  }
+
+  public get currentHallId(): string {
+    return this.lastHallId || 'entrance';
+  }
+
+  public get currentHallName(): string {
+    return this.lastHallName || 'Grand Entrance';
   }
 
   public teleportTo(x: number, y: number, z: number, yaw: number = Math.PI): void {

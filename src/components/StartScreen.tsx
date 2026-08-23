@@ -1,11 +1,18 @@
 import React from 'react';
-import { Compass, Eye, Move, Volume2, Sparkles, Shield, Maximize2 } from 'lucide-react';
+import { Compass, Eye, Move, Sparkles, Loader2 } from 'lucide-react';
+import { PrewarmState } from '../types';
 
 interface StartScreenProps {
   onEnter: () => void;
+  prewarmState?: PrewarmState;
 }
 
-export const StartScreen: React.FC<StartScreenProps> = ({ onEnter }) => {
+export const StartScreen: React.FC<StartScreenProps> = ({ onEnter, prewarmState }) => {
+  const isReady = prewarmState ? prewarmState.isComplete : true;
+  const progressPercent = prewarmState
+    ? Math.round((prewarmState.loaded / Math.max(1, prewarmState.total)) * 100)
+    : 100;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/95 backdrop-blur-md text-amber-50 p-6 overflow-y-auto">
       {/* Subtle gold grid ambient glow */}
@@ -66,17 +73,42 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onEnter }) => {
           </div>
         </div>
 
-        {/* Action Button */}
-        <div>
-          <button
-            onClick={onEnter}
-            className="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 text-zinc-950 font-bold font-serif text-lg tracking-wider hover:from-amber-500 hover:to-yellow-500 transition-all shadow-lg hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
-          >
-            ENTER MUSEUM
-          </button>
-          <p className="text-[11px] text-zinc-500 mt-3">
-            Click anywhere in the museum to lock mouse look. Press ESC to unlock cursor.
-          </p>
+        {/* Action Button & Prewarming Status */}
+        <div className="space-y-4">
+          {!isReady && prewarmState && (
+            <div className="max-w-md mx-auto space-y-2">
+              <div className="flex justify-between items-center text-xs text-amber-300/80 font-sans px-1">
+                <span className="flex items-center gap-1.5">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                  {prewarmState.statusMessage || 'Preparing Exhibition...'}
+                </span>
+                <span>{progressPercent}%</span>
+              </div>
+              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-amber-500 to-yellow-400 h-full transition-all duration-200 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <button
+              onClick={onEnter}
+              disabled={!isReady}
+              className={`w-full sm:w-auto px-10 py-4 rounded-xl font-bold font-serif text-lg tracking-wider transition-all shadow-lg select-none ${
+                isReady
+                  ? 'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 text-zinc-950 hover:from-amber-500 hover:to-yellow-500 hover:shadow-amber-500/20 active:scale-95 cursor-pointer'
+                  : 'bg-zinc-800/80 border border-zinc-700 text-zinc-400 cursor-not-allowed opacity-80'
+              }`}
+            >
+              {isReady ? 'ENTER MUSEUM' : 'PREPARING EXHIBITION...'}
+            </button>
+            <p className="text-[11px] text-zinc-500 mt-3">
+              Click anywhere in the museum to lock mouse look. Press ESC to unlock cursor.
+            </p>
+          </div>
         </div>
 
       </div>

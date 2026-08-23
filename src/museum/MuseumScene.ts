@@ -5,8 +5,10 @@ import { Lighting } from './Lighting';
 import { GallerySystem, PaintingManager } from './GallerySystem';
 import { CollisionSystem } from './CollisionSystem';
 import { PlayerController } from './PlayerController';
-import { PerformanceManager, QualityLevel } from './PerformanceManager';
-import { PlayerState, Artwork } from '../types';
+import { PerformanceManager, AdaptiveLevel } from './PerformanceManager';
+import { DiagnosticProfiler } from './DiagnosticProfiler';
+import { StaticGeometryBatcher } from './StaticGeometryBatcher';
+import { PlayerState, Artwork, PrewarmState } from '../types';
 
 export class MuseumScene {
   private container: HTMLElement;
@@ -26,25 +28,61 @@ export class MuseumScene {
   private mouse = new THREE.Vector2();
   private animationFrameId: number | null = null;
   private timer = new Timer();
+  private isDisposed = false;
+  private prewarmPromise: Promise<void> | null = null;
+
+  // Static Global Directional Shadow Map System (Phase 4A)
+  public static SHADOW_TEST_MODE: 'CURRENT' | 'OFF' | 'STATIC' = 'STATIC';
+  public static currentSceneInstance: MuseumScene | null = null;
+  private staticShadowBaked = false;
 
   private onStateUpdate?: (state: PlayerState) => void;
   private onFocusArtwork?: (artwork: Artwork) => void;
+  private onPrewarmProgress?: (state: PrewarmState) => void;
+
+  public static setShadowTestMode(mode: 'CURRENT' | 'OFF' | 'STATIC'): void {
+    MuseumScene.SHADOW_TEST_MODE = mode;
+    DiagnosticProfiler.getInstance().setShadowMode(mode);
+    if (MuseumScene.currentSceneInstance) {
+      MuseumScene.currentSceneInstance.applyShadowMode(mode);
+    }
+  }
 
   constructor(
     container: HTMLElement,
     onStateUpdate?: (state: PlayerState) => void,
-    onFocusArtwork?: (artwork: Artwork) => void
+    onFocusArtwork?: (artwork: Artwork) => void,
+    onPrewarmProgress?: (state: PrewarmState) => void
   ) {
     this.container = container;
     this.onStateUpdate = onStateUpdate;
     this.onFocusArtwork = onFocusArtwork;
+    this.onPrewarmProgress = onPrewarmProgress;
+    MuseumScene.currentSceneInstance = this;
 
-    this.performanceManager = new PerformanceManager((level) => this.onQualityChange(level));
+    // Expose development-only diagnostic configuration switches
+    (window as any).__MUSEUM_CONFIG__ = {
+      get BATCHING_ENABLED() { return StaticGeometryBatcher.BATCHING_ENABLED; },
+      set BATCHING_ENABLED(val: boolean) { StaticGeometryBatcher.BATCHING_ENABLED = val; },
+      get PREWARMING_ENABLED() { return PaintingManager.PREWARMING_ENABLED; },
+      set PREWARMING_ENABLED(val: boolean) { PaintingManager.PREWARMING_ENABLED = val; },
+      get SHADOW_TEST_MODE() { return MuseumScene.SHADOW_TEST_MODE; },
+      set SHADOW_TEST_MODE(val: 'CURRENT' | 'OFF' | 'STATIC') {
+        MuseumScene.setShadowTestMode(val);
+      },
+      get PERFORMANCE_MODE() { return PerformanceManager.PERFORMANCE_MODE; },
+      set PERFORMANCE_MODE(val: 'AUTO' | 'HIGH' | 'MEDIUM' | 'LOW') {
+        MuseumScene.setPerformanceMode(val);
+      }
+    };
+
+    this.performanceManager = new PerformanceManager((level) => this.onAdaptiveChange(level));
 
     this.initThree();
     this.initModules();
     this.initEvents();
     this.startLoop();
+    this.startPrewarm();
   }
 
   private initThree(): void {
@@ -70,32 +108,64 @@ export class MuseumScene {
     this.renderer.toneMappingExposure = 1.70;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.shadowMap.needsUpdate = false;
 
     this.timer.connect(document);
 
     this.container.appendChild(this.renderer.domElement);
   }
 
-  private onQualityChange(level: QualityLevel): void {
+  /**
+   * Bakes the static directional architectural shadow map once onto the GPU.
+   * Auto-update is disabled, leaving the shadow map static for the entire session.
+   */
+  public bakeStaticShadowMap(trigger = 'Initial Static Bake'): void {
+    if (!this.lighting || !this.lighting.dirLight || !this.renderer.shadowMap.enabled) return;
+    if (MuseumScene.SHADOW_TEST_MODE === 'OFF') {
+      this.lighting.dirLight.castShadow = false;
+      this.renderer.shadowMap.needsUpdate = false;
+      return;
+    }
+
+    this.lighting.dirLight.castShadow = true;
+    this.lighting.dirLight.updateMatrixWorld();
+    this.lighting.dirLight.target.updateMatrixWorld();
+    this.renderer.shadowMap.needsUpdate = true;
+    this.staticShadowBaked = true;
+    DiagnosticProfiler.getInstance().recordShadowUpdate(
+      new THREE.Vector3(0, 0, 0),
+      0,
+      0,
+      trigger
+    );
+  }
+
+  public applyShadowMode(mode: 'CURRENT' | 'OFF' | 'STATIC'): void {
+    if (!this.lighting || !this.lighting.dirLight) return;
+
+    if (mode === 'OFF') {
+      this.lighting.dirLight.castShadow = false;
+      this.renderer.shadowMap.enabled = false;
+      this.renderer.shadowMap.needsUpdate = false;
+    } else {
+      this.renderer.shadowMap.enabled = true;
+      this.lighting.dirLight.castShadow = true;
+      this.bakeStaticShadowMap(`Shadow Mode Switch (${mode})`);
+    }
+  }
+
+  public static setPerformanceMode(mode: 'AUTO' | 'HIGH' | 'MEDIUM' | 'LOW'): void {
+    PerformanceManager.PERFORMANCE_MODE = mode;
+    if (MuseumScene.currentSceneInstance && MuseumScene.currentSceneInstance.performanceManager) {
+      MuseumScene.currentSceneInstance.performanceManager.setMode(mode);
+    }
+  }
+
+  private onAdaptiveChange(level: AdaptiveLevel): void {
     if (!this.performanceManager || !this.renderer) return;
     const ratio = this.performanceManager.getPixelRatio(window.devicePixelRatio);
     this.renderer.setPixelRatio(ratio);
-
-    if (this.lighting && this.lighting.dirLight) {
-      if (!this.performanceManager.shouldRenderShadows()) {
-        this.renderer.shadowMap.enabled = false;
-        this.lighting.dirLight.castShadow = false;
-      } else {
-        this.renderer.shadowMap.enabled = true;
-        this.lighting.dirLight.castShadow = true;
-        const shadowSize = this.performanceManager.getShadowMapSize();
-        if (this.lighting.dirLight.shadow.mapSize.width !== shadowSize) {
-          this.lighting.dirLight.shadow.mapSize.set(shadowSize, shadowSize);
-          this.lighting.dirLight.shadow.map?.dispose();
-          this.lighting.dirLight.shadow.map = null;
-        }
-      }
-    }
   }
 
   private initModules(): void {
@@ -104,12 +174,12 @@ export class MuseumScene {
 
     // Lighting
     this.lighting = new Lighting();
-    this.lighting.initLighting();
-    this.scene.add(this.lighting.lightingGroup);
 
-    // Architecture
+    // Architecture (builds static architecture geometry and batches lighting static fixtures)
     this.architecture = new Architecture(this.collisionSystem);
-    this.architecture.buildMuseum();
+    this.architecture.buildMuseum(this.lighting);
+
+    this.scene.add(this.lighting.lightingGroup);
     this.scene.add(this.architecture.sceneGroup);
 
     // Gallery & Artworks
@@ -125,23 +195,21 @@ export class MuseumScene {
       this.gallerySystem,
       this.renderer.domElement,
       (state) => {
+        this.performanceManager.recordReactNotification();
         if (this.onStateUpdate) {
-          let activeLightCount = 0;
-          if (this.lighting && this.lighting.lightingGroup) {
-            this.lighting.lightingGroup.traverse((obj) => {
-              if (obj.visible && (obj as THREE.Light).isLight) activeLightCount++;
-            });
-          }
+          const activeLights = this.lighting ? this.lighting.getActiveLightCount() : 0;
           this.onStateUpdate({
             ...state,
             perfStats: {
-              fps: Math.round(this.performanceManager.targetFps),
+              fps: this.performanceManager.stats.avgFps || 60,
               drawCalls: this.renderer ? this.renderer.info.render.calls : 0,
               triangles: this.renderer ? this.renderer.info.render.triangles : 0,
               textures: this.renderer ? this.renderer.info.memory.textures : 0,
               geometries: this.renderer ? this.renderer.info.memory.geometries : 0,
-              activeLights: activeLightCount,
-              qualityLevel: this.performanceManager.qualityLevel,
+              activeLights,
+              qualityLevel: this.performanceManager.currentAdaptiveLevel,
+              adaptiveLevel: this.performanceManager.currentAdaptiveLevel,
+              performanceMode: PerformanceManager.PERFORMANCE_MODE
             }
           });
         }
@@ -156,7 +224,7 @@ export class MuseumScene {
   }
 
   private handleResize = (): void => {
-    if (!this.container) return;
+    if (!this.container || this.isDisposed) return;
     const width = this.container.clientWidth || window.innerWidth;
     const height = this.container.clientHeight || window.innerHeight;
 
@@ -166,6 +234,7 @@ export class MuseumScene {
   };
 
   private handleClick = (e: MouseEvent): void => {
+    if (this.isDisposed) return;
     if (!this.playerController.isPointerLocked) {
       this.playerController.requestPointerLock();
       return;
@@ -195,58 +264,45 @@ export class MuseumScene {
 
   private startLoop(): void {
     let frameCount = 0;
-    let lastRenderTime = performance.now();
+    let lastFrameTime = performance.now();
 
     const render = (timestamp: number = performance.now()) => {
+      if (this.isDisposed) return;
       this.animationFrameId = requestAnimationFrame(render);
 
-      // Frame pacing: Cap frame rate according to PerformanceManager target to prevent CPU/GPU overheating
-      const frameInterval = this.performanceManager.frameInterval;
-      const elapsed = timestamp - lastRenderTime;
+      const tFrameStart = performance.now();
+      const callbackGapMs = (timestamp - lastFrameTime);
+      lastFrameTime = timestamp;
 
-      if (elapsed < frameInterval - 1.0) {
-        return; // Skip rendering frame to maintain FPS cap
-      }
-
-      lastRenderTime = timestamp - (elapsed % frameInterval);
-
+      // Frame-rate independent delta calculation with safety clamping
       this.timer.update(timestamp);
-      const delta = Math.min(0.05, this.timer.getDelta());
+      const rawDelta = this.timer.getDelta();
+      const delta = Math.min(0.033, Math.max(0.0001, rawDelta));
 
-      // Track frame delta for adaptive quality management
       this.performanceManager.recordFrame(delta);
 
-      // Update player position and controls
+      // 1. Precise, lightweight performance timing breakdown (Req 7)
+      const tPlayerStart = performance.now();
       this.playerController.update(delta);
+      const playerUpdateTimeMs = performance.now() - tPlayerStart;
+
       const pos = this.playerController.position;
 
-      // 1. Directional Light Shadow Camera follows player position
-      if (this.lighting && this.lighting.dirLight) {
-        this.lighting.dirLight.position.set(pos.x + 14, pos.y + 24, pos.z + 18);
-        this.lighting.dirLight.target.position.set(pos.x, pos.y, pos.z);
-      }
+      const tSceneStart = performance.now();
 
-      // 2. Sync player handheld lantern position with player camera
       if (this.lighting && this.lighting.playerLantern) {
         this.lighting.playerLantern.position.set(pos.x, pos.y - 0.2, pos.z);
       }
 
       frameCount++;
 
-      // 3. Distance Culling for Artwork meshes and Room Lights (Throttled to every 6 frames)
-      if (frameCount % 6 === 0) {
-        // Distance culling for room point lights
+      // Distance Culling throttled to every 6 frames (or every 12 frames in LEVEL_1_CPU to reduce runtime workload)
+      const cullInterval = this.performanceManager.currentAdaptiveLevel === 'LEVEL_0_FULL' ? 6 : 12;
+      if (frameCount % cullInterval === 0) {
         if (this.lighting) {
-          const cullDistSq = 38 * 38;
-          const lights = this.lighting.dynamicPointLights;
-          for (let i = 0; i < lights.length; i++) {
-            const item = lights[i];
-            const dx = pos.x - item.pos.x;
-            const dz = pos.z - item.pos.z;
-            item.light.visible = (dx * dx + dz * dz) < cullDistSq;
-          }
+          const budget = this.performanceManager.lightBudget;
+          this.lighting.updateSecondaryPointLights(pos, budget);
 
-          // Dynamic Artwork Focus Spotlight
           const nearest = this.gallerySystem.getNearestArtwork(pos);
           if (nearest && (nearest.distance < 8.0 || this.playerController.isInspectMode)) {
             const spot = this.lighting.focusSpotlight;
@@ -260,7 +316,6 @@ export class MuseumScene {
           }
         }
 
-        // Distance culling for interactive artwork planes (70m radius)
         const artCullDistSq = 70 * 70;
         const artworks = this.gallerySystem.interactiveArtworks;
         for (let i = 0; i < artworks.length; i++) {
@@ -271,26 +326,149 @@ export class MuseumScene {
           art.mesh.visible = (dx * dx + dz * dz) < artCullDistSq;
         }
       }
+      const sceneUpdateTimeMs = performance.now() - tSceneStart;
 
+      // 2. Render execution
+      const isShadowUpdateFrame = this.renderer.shadowMap.enabled && this.renderer.shadowMap.needsUpdate;
+      const tRenderStart = performance.now();
       this.renderer.render(this.scene, this.camera);
+      const renderTimeMs = performance.now() - tRenderStart;
+
+      // Total synchronous JS execution time in this RAF callback
+      const executionTimeMs = performance.now() - tFrameStart;
+
+      // 3. Ultra-lightweight Diagnostic Profiler recording (Part 1, 3, 4)
+      const profiler = DiagnosticProfiler.getInstance();
+      if (isShadowUpdateFrame) {
+        const baseline = this.performanceManager.stats.renderTimeMs || 7.5;
+        const shadowPassDuration = Math.max(0.5, renderTimeMs - baseline);
+        profiler.recordShadowPassDuration(shadowPassDuration);
+      }
+
+      const activeLightCount = this.lighting ? this.lighting.getActiveLightCount() : 0;
+
+      profiler.recordFrame(
+        callbackGapMs,
+        executionTimeMs,
+        this.renderer,
+        pos,
+        this.playerController.currentHallId,
+        this.playerController.currentHallName,
+        activeLightCount,
+        playerUpdateTimeMs,
+        sceneUpdateTimeMs,
+        renderTimeMs
+      );
+
+      if (frameCount % 30 === 0) {
+        this.performanceManager.stats.playerUpdateTimeMs = parseFloat(playerUpdateTimeMs.toFixed(2));
+        this.performanceManager.stats.jsUpdateTimeMs = parseFloat((playerUpdateTimeMs + sceneUpdateTimeMs).toFixed(2));
+        this.performanceManager.stats.renderTimeMs = parseFloat(renderTimeMs.toFixed(2));
+      }
     };
 
     render();
   }
 
+  public startPrewarm(): Promise<void> {
+    if (this.prewarmPromise) {
+      return this.prewarmPromise;
+    }
+
+    this.prewarmPromise = this.executePrewarm();
+    return this.prewarmPromise;
+  }
+
+  private async executePrewarm(): Promise<void> {
+    if (this.isDisposed) return;
+    const profiler = DiagnosticProfiler.getInstance();
+
+    try {
+      // 1. Asynchronously preload and prewarm all 36 artwork textures on GPU
+      await this.gallerySystem.preloadAndPrewarmAll(this.renderer, (loaded, total, msg) => {
+        if (!this.isDisposed && this.onPrewarmProgress) {
+          this.onPrewarmProgress({
+            loaded,
+            total,
+            isComplete: false,
+            statusMessage: msg
+          });
+        }
+      });
+
+      if (this.isDisposed) return;
+
+      // 2. Yield to browser thread before shader precompilation
+      if (this.onPrewarmProgress) {
+        this.onPrewarmProgress({
+          loaded: 36,
+          total: 36,
+          isComplete: false,
+          statusMessage: 'Compiling museum shaders...'
+        });
+      }
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      if (this.isDisposed) return;
+
+      // 3. Precompile complete scene shader variants and bake static architectural shadow map
+      this.bakeStaticShadowMap('Prewarm Initial Bake');
+
+      const initialPrograms = this.renderer.info.programs ? this.renderer.info.programs.length : 0;
+      profiler.recordShaderPrecompileStart(initialPrograms);
+
+      this.renderer.compile(this.scene, this.camera);
+
+      const finalPrograms = this.renderer.info.programs ? this.renderer.info.programs.length : 0;
+      profiler.recordShaderPrecompileComplete(finalPrograms);
+      profiler.recordPrewarmComplete();
+
+      // 4. Prewarm completed
+      if (!this.isDisposed && this.onPrewarmProgress) {
+        this.onPrewarmProgress({
+          loaded: 36,
+          total: 36,
+          isComplete: true,
+          statusMessage: 'Exhibition Ready'
+        });
+      }
+    } catch (err) {
+      console.warn('[MuseumScene] Prewarm encountered non-fatal notice:', err);
+      if (!this.isDisposed && this.onPrewarmProgress) {
+        this.onPrewarmProgress({
+          loaded: 36,
+          total: 36,
+          isComplete: true,
+          statusMessage: 'Exhibition Ready'
+        });
+      }
+    }
+  }
+
   public dispose(): void {
+    this.isDisposed = true;
+
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
     window.removeEventListener('resize', this.handleResize);
-    this.renderer.domElement.removeEventListener('click', this.handleClick);
-
-    this.timer.dispose();
-    this.playerController.dispose();
-
     if (this.renderer && this.renderer.domElement) {
-      this.container.removeChild(this.renderer.domElement);
+      this.renderer.domElement.removeEventListener('click', this.handleClick);
+    }
+
+    if (this.paintingManager) {
+      this.paintingManager.dispose();
+    }
+    if (this.playerController) {
+      this.playerController.dispose();
+    }
+    this.timer.dispose();
+
+    if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentElement) {
+      this.renderer.domElement.parentElement.removeChild(this.renderer.domElement);
       this.renderer.dispose();
     }
   }
 }
+

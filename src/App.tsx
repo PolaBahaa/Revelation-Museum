@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MuseumScene } from './museum/MuseumScene';
 import { StartScreen } from './components/StartScreen';
-import { PlayerState, Artwork } from './types';
+import { PlayerState, Artwork, PrewarmState } from './types';
 
 interface InspectPresentationProps {
   artwork: Artwork;
@@ -52,6 +52,12 @@ export default function App() {
 
   const [hasEntered, setHasEntered] = useState(false);
   const [playerState, setPlayerState] = useState<PlayerState | null>(null);
+  const [prewarmState, setPrewarmState] = useState<PrewarmState>({
+    loaded: 0,
+    total: 36,
+    isComplete: false,
+    statusMessage: 'Preparing Exhibition...'
+  });
 
   // Initialize Three.js Museum Scene on mount
   useEffect(() => {
@@ -61,6 +67,10 @@ export default function App() {
       containerRef.current,
       (state) => {
         setPlayerState(state);
+      },
+      undefined,
+      (pState) => {
+        setPrewarmState(pState);
       }
     );
     sceneRef.current = museum;
@@ -100,7 +110,12 @@ export default function App() {
       />
 
       {/* Start Screen Overlay (Shown ONLY prior to entering) */}
-      {!hasEntered && <StartScreen onEnter={handleEnterMuseum} />}
+      {!hasEntered && (
+        <StartScreen
+          onEnter={handleEnterMuseum}
+          prewarmState={prewarmState}
+        />
+      )}
 
       {/* Clean Fullscreen Artwork Presentation View (Inspect Mode) */}
       {hasEntered && playerState?.isInspectMode && playerState.inspectArtwork && (
