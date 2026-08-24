@@ -3,6 +3,7 @@ import { Artwork } from '../types';
 import { ALL_ARTWORKS } from './MuseumData';
 import { Lighting } from './Lighting';
 import { DiagnosticProfiler } from './DiagnosticProfiler';
+import { TextureGenerator } from './TextureGenerator';
 
 export interface InteractiveArtworkMesh {
   artwork: Artwork;
@@ -179,11 +180,36 @@ export class PaintingManager {
     this.galleryGroup.add(spotGroup);
     this.galleryGroup.add(group);
 
-    // Initial placeholder item record
-    const dummyMesh = new THREE.Mesh();
+    // Initial guaranteed visible artwork mesh with high-resolution masterpiece canvas
+    const initialTexture = TextureGenerator.createArtworkMasterpieceTexture(art);
+    const initialDims = this.calculateArtworkDimensions(1536, 1024);
+    const initialGeo = new THREE.PlaneGeometry(initialDims.width, initialDims.height);
+    const initialMat = new THREE.MeshStandardMaterial({
+      map: initialTexture,
+      transparent: true,
+      alphaTest: 0.005,
+      roughness: 0.3,
+      metalness: 0.05,
+      side: THREE.FrontSide
+    });
+
+    const paintingMesh = new THREE.Mesh(initialGeo, initialMat);
+    paintingMesh.position.set(0, 0, 0.01);
+    paintingMesh.castShadow = false;
+    paintingMesh.receiveShadow = false;
+    group.add(paintingMesh);
+
+    paintingMesh.updateMatrix();
+    paintingMesh.updateMatrixWorld(true);
+    paintingMesh.matrixAutoUpdate = false;
+
+    group.updateMatrix();
+    group.updateMatrixWorld(true);
+    group.matrixAutoUpdate = false;
+
     const interactiveItem: InteractiveArtworkMesh = {
       artwork: art,
-      mesh: dummyMesh,
+      mesh: paintingMesh,
       worldPosition: new THREE.Vector3(slot.pos[0], slot.pos[1], slot.pos[2]),
       isRealPNG: false
     };
@@ -194,6 +220,8 @@ export class PaintingManager {
       slot,
       group,
       interactiveItem,
+      mesh: paintingMesh,
+      texture: initialTexture,
       loaded: false
     });
   }
@@ -342,51 +370,38 @@ export class PaintingManager {
         item.art.width = targetW;
         item.art.height = targetH;
 
-        // Create clean PNG plane mesh directly attached to museum wall with 0.01m offset
-        const pngGeo = new THREE.PlaneGeometry(targetW, targetH);
-        const pngMat = new THREE.MeshStandardMaterial({
-          map: texture,
-          transparent: true,
-          roughness: 0.25,
-          metalness: 0.02,
-          side: THREE.FrontSide
-        });
+        if (item.mesh) {
+          item.mesh.geometry.dispose();
+          const newGeo = new THREE.PlaneGeometry(targetW, targetH);
+          item.mesh.geometry = newGeo;
+          const mat = item.mesh.material as THREE.MeshStandardMaterial;
+          mat.map = texture;
+          mat.transparent = true;
+          mat.alphaTest = 0.005;
+          mat.depthWrite = true;
+          mat.roughness = 0.25;
+          mat.metalness = 0.02;
+          mat.side = THREE.FrontSide;
+          mat.needsUpdate = true;
 
-        const pngMesh = new THREE.Mesh(pngGeo, pngMat);
-        pngMesh.position.set(0, 0, 0.01);
-        pngMesh.castShadow = false;
-        pngMesh.receiveShadow = false;
-
-        item.group.add(pngMesh);
-
-        // Update local and world matrices explicitly
-        pngMesh.updateMatrix();
-        pngMesh.updateMatrixWorld(true);
-        pngMesh.matrixAutoUpdate = false;
-
-        item.group.updateMatrix();
-        item.group.updateMatrixWorld(true);
-        item.group.matrixAutoUpdate = false;
-
-        // Perform bounding box validation
-        pngGeo.computeBoundingBox();
-        if (pngGeo.boundingBox) {
-          const currentWidth = pngGeo.boundingBox.max.x - pngGeo.boundingBox.min.x;
-          if (currentWidth > MAX_ARTWORK_WIDTH + 0.01) {
-            const scaleFactor = MAX_ARTWORK_WIDTH / currentWidth;
-            pngMesh.scale.set(scaleFactor, scaleFactor, 1.0);
-            pngMesh.updateMatrix();
-            pngMesh.updateMatrixWorld(true);
+          // Perform bounding box validation
+          newGeo.computeBoundingBox();
+          if (newGeo.boundingBox) {
+            const currentWidth = newGeo.boundingBox.max.x - newGeo.boundingBox.min.x;
+            if (currentWidth > MAX_ARTWORK_WIDTH + 0.01) {
+              const scaleFactor = MAX_ARTWORK_WIDTH / currentWidth;
+              item.mesh.scale.set(scaleFactor, scaleFactor, 1.0);
+            }
           }
+
+          item.mesh.updateMatrix();
+          item.mesh.updateMatrixWorld(true);
+          item.mesh.getWorldPosition(item.interactiveItem.worldPosition);
+          item.interactiveItem.isRealPNG = true;
+          item.interactiveItem.mesh = item.mesh;
         }
 
-        // Update interaction record
-        item.interactiveItem.mesh = pngMesh;
-        item.interactiveItem.isRealPNG = true;
-        pngMesh.getWorldPosition(item.interactiveItem.worldPosition);
-
         item.texture = texture;
-        item.mesh = pngMesh;
         item.loaded = true;
 
         // Explicit GPU Texture Initialization

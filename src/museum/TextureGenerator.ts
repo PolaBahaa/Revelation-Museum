@@ -854,4 +854,207 @@ export class TextureGenerator {
     this.canvasCache.set(key, texture);
     return texture;
   }
+
+  /**
+   * Generates a high-resolution, exquisite classical museum masterpiece canvas texture
+   * for any artwork, featuring gold leaf borders, radial oil chiaroscuro, and sacred motifs.
+   */
+  public static createArtworkMasterpieceTexture(art: {
+    number: number;
+    title: string;
+    subTitle?: string;
+    scripture?: string;
+    canvasColorPrimary?: string;
+    canvasColorSecondary?: string;
+    hallName?: string;
+  }): THREE.CanvasTexture {
+    const key = `artwork_masterpiece_${art.number}`;
+    if (this.canvasCache.has(key)) return this.canvasCache.get(key)!;
+
+    const size = 1024;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+
+    const priColor = art.canvasColorPrimary || '#1e1b4b';
+    const secColor = art.canvasColorSecondary || '#fbbf24';
+
+    // 1. Ornate Dark Mahogany and Aged Gold Outer Frame
+    const frameWidth = 48;
+    ctx.fillStyle = '#1c1109';
+    ctx.fillRect(0, 0, size, size);
+
+    // Beveled frame gradient
+    const frameGrad = ctx.createLinearGradient(0, 0, size, size);
+    frameGrad.addColorStop(0, '#2b1a0e');
+    frameGrad.addColorStop(0.5, '#402715');
+    frameGrad.addColorStop(1, '#1a0f08');
+    ctx.fillStyle = frameGrad;
+    ctx.fillRect(8, 8, size - 16, size - 16);
+
+    // Aged Gold Leaf Inner & Outer Fillets
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(6, 6, size - 12, size - 12);
+    ctx.strokeRect(frameWidth - 4, frameWidth - 4, size - (frameWidth - 4) * 2, size - (frameWidth - 4) * 2);
+
+    ctx.strokeStyle = '#854d0e';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(frameWidth - 8, frameWidth - 8, size - (frameWidth - 8) * 2, size - (frameWidth - 8) * 2);
+
+    // 2. Painting Canvas Area
+    const canvasX = frameWidth;
+    const canvasY = frameWidth;
+    const canvasW = size - frameWidth * 2;
+    const canvasH = size - frameWidth * 2;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(canvasX, canvasY, canvasW, canvasH);
+    ctx.clip();
+
+    // Canvas Background Chiaroscuro Gradient
+    const cx = size / 2;
+    const cy = size / 2;
+    const bgGrad = ctx.createRadialGradient(cx, cy * 0.85, 30, cx, cy, canvasW * 0.7);
+    bgGrad.addColorStop(0, secColor);
+    bgGrad.addColorStop(0.45, priColor);
+    bgGrad.addColorStop(1, '#09080e');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(canvasX, canvasY, canvasW, canvasH);
+
+    // 3. Divine Celestial Rays / Flare from top center
+    const numRays = 24;
+    for (let r = 0; r < numRays; r++) {
+      const angle = (r / numRays) * Math.PI * 2;
+      ctx.save();
+      ctx.translate(cx, cy * 0.6);
+      ctx.rotate(angle);
+      const rayGrad = ctx.createLinearGradient(0, 0, canvasW * 0.6, 0);
+      rayGrad.addColorStop(0, 'rgba(255, 235, 160, 0.25)');
+      rayGrad.addColorStop(0.7, 'rgba(212, 175, 55, 0.08)');
+      rayGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = rayGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, -6);
+      ctx.lineTo(canvasW * 0.6, -18);
+      ctx.lineTo(canvasW * 0.6, 18);
+      ctx.lineTo(0, 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 4. Central Sacred Gold Emblem / Rosette
+    ctx.save();
+    ctx.translate(cx, cy * 0.75);
+
+    // Outer luminous halo
+    const haloGrad = ctx.createRadialGradient(0, 0, 40, 0, 0, 190);
+    haloGrad.addColorStop(0, 'rgba(254, 240, 138, 0.40)');
+    haloGrad.addColorStop(0.6, 'rgba(217, 119, 6, 0.18)');
+    haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = haloGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 190, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 12-point Sacred Compass Star
+    const starPoints = art.number % 2 === 0 ? 8 : 12;
+    for (let i = 0; i < starPoints; i++) {
+      const angle = (i / starPoints) * Math.PI * 2;
+      ctx.save();
+      ctx.rotate(angle);
+
+      // Gold ray
+      const starGrad = ctx.createLinearGradient(0, 0, 0, -140);
+      starGrad.addColorStop(0, '#fde047');
+      starGrad.addColorStop(1, '#92400e');
+      ctx.fillStyle = starGrad;
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-14, -40);
+      ctx.lineTo(0, -135);
+      ctx.lineTo(14, -40);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Inner medallion ring
+    ctx.beginPath();
+    ctx.arc(0, 0, 60, 0, Math.PI * 2);
+    ctx.fillStyle = '#1c1109';
+    ctx.fill();
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Star core finial
+    ctx.beginPath();
+    ctx.arc(0, 0, 24, 0, Math.PI * 2);
+    ctx.fillStyle = '#fbbf24';
+    ctx.fill();
+
+    ctx.restore();
+
+    // 5. Elegant Typography Presentation Banner
+    const bannerY = size - frameWidth - 190;
+    const bannerH = 175;
+
+    // Dark semi-translucent parchment plaque
+    const plaqueGrad = ctx.createLinearGradient(0, bannerY, 0, bannerY + bannerH);
+    plaqueGrad.addColorStop(0, 'rgba(10, 8, 12, 0.88)');
+    plaqueGrad.addColorStop(1, 'rgba(18, 12, 16, 0.95)');
+    ctx.fillStyle = plaqueGrad;
+    ctx.fillRect(canvasX + 16, bannerY, canvasW - 32, bannerH);
+
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(canvasX + 16, bannerY, canvasW - 32, bannerH);
+
+    // Exhibition No.
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 22px Georgia, serif';
+    ctx.fillText(`EXHIBITION NO. ${art.number} OF 36`, cx, bannerY + 34);
+
+    // Title
+    ctx.fillStyle = '#fffbeb';
+    ctx.font = 'bold 36px Georgia, serif';
+    ctx.fillText(art.title, cx, bannerY + 76);
+
+    // Subtitle
+    if (art.subTitle) {
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'italic 20px Georgia, serif';
+      ctx.fillText(art.subTitle, cx, bannerY + 108);
+    }
+
+    // Scripture Reference
+    if (art.scripture) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 18px Georgia, serif';
+      ctx.fillText(`— ${art.scripture} —`, cx, bannerY + 142);
+    }
+
+    // Fine oil canvas texture stipple
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+    for (let i = 0; i < 4000; i++) {
+      const rx = canvasX + Math.random() * canvasW;
+      const ry = canvasY + Math.random() * canvasH;
+      ctx.fillRect(rx, ry, 1.2, 1.2);
+    }
+
+    ctx.restore();
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.generateMipmaps = true;
+    this.canvasCache.set(key, texture);
+    return texture;
+  }
 }
+

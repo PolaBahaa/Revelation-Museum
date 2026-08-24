@@ -26,7 +26,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onEnter, prewarmState 
             <Sparkles className="w-3.5 h-3.5" /> Classical Royal Architecture
           </div>
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 tracking-wider">
-            REVELATION ROYAL MUSEUM
+            PROPHETIA MUSEUM
           </h1>
           <p className="text-amber-200/80 text-lg font-serif italic">
             An Immersive Journey Through the Book of Revelation
@@ -34,8 +34,8 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onEnter, prewarmState 
         </div>
 
         <p className="text-zinc-300 text-sm max-w-xl mx-auto leading-relaxed font-sans">
-          Welcome to a 3D WebGL museum inspired by classical European palaces and Mediterranean architecture.
-          Explore 36 masterworks across six magnificent exhibition halls with full first-person navigation.
+          Welcome to Prophetia Museum, a 3D WebGL classical sanctuary inspired by European royal architecture.
+          Explore 36 sacred masterworks across six magnificent exhibition halls with full first-person navigation.
         </p>
 
         {/* Controls Grid */}
@@ -109,6 +109,11 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onEnter, prewarmState 
               Click anywhere in the museum to lock mouse look. Press ESC to unlock cursor.
             </p>
           </div>
+        </div>
+
+        {/* Copyright Notice */}
+        <div className="pt-2 border-t border-zinc-800/80 text-[11px] text-zinc-500 font-sans tracking-wide">
+          © 2026 Pola Bahaa. All Rights Reserved.
         </div>
 
       </div>

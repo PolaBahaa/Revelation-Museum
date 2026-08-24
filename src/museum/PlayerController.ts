@@ -63,6 +63,7 @@ export class PlayerController {
   // Callbacks and state throttling
   private onStateUpdate?: (state: PlayerState) => void;
   private onFocusArtwork?: (artwork: Artwork) => void;
+  private onToggleMap?: () => void;
   private lastStateNotifyTime = 0;
   private lastHallId = '';
   private lastNotifiedHallId = '';
@@ -86,7 +87,8 @@ export class PlayerController {
     gallerySystem: GallerySystem,
     domElement: HTMLElement,
     onStateUpdate?: (state: PlayerState) => void,
-    onFocusArtwork?: (artwork: Artwork) => void
+    onFocusArtwork?: (artwork: Artwork) => void,
+    onToggleMap?: () => void
   ) {
     this.camera = camera;
     this.collisionSystem = collisionSystem;
@@ -94,8 +96,13 @@ export class PlayerController {
     this.domElement = domElement;
     this.onStateUpdate = onStateUpdate;
     this.onFocusArtwork = onFocusArtwork;
+    this.onToggleMap = onToggleMap;
 
     this.initListeners();
+  }
+
+  public setToggleMapCallback(cb: () => void): void {
+    this.onToggleMap = cb;
   }
 
   private initListeners(): void {
@@ -172,6 +179,14 @@ export class PlayerController {
     }
 
     this.keys[e.code] = true;
+
+    // [M] key -> Toggle Interactive Museum Map
+    if (e.code === 'KeyM' || e.key === 'm' || e.key === 'M') {
+      if (this.onToggleMap) {
+        this.onToggleMap();
+      }
+      return;
+    }
 
     // [F] key -> Toggle Artwork Inspect Mode
     if (e.code === 'KeyF' || e.key === 'f' || e.key === 'F') {
@@ -312,6 +327,23 @@ export class PlayerController {
   }
 
   /**
+   * Directly teleports player to target coordinates, resolving collision
+   */
+  public teleport(x: number, y: number, z: number, yaw?: number): void {
+    const [resX, resZ] = this.collisionSystem.resolveCollision(x, z);
+    this.position.set(resX, y, resZ);
+    this.camera.position.copy(this.position);
+    if (yaw !== undefined) {
+      this.yaw = yaw;
+      this.pitch = 0;
+      this.tempEuler.set(this.pitch, this.yaw, 0, 'YXZ');
+      this.camera.quaternion.setFromEuler(this.tempEuler);
+    }
+    this.isNavigating = false;
+    this.notifyState(true);
+  }
+
+  /**
    * Smoothly moves and rotates camera to a safe viewing position in front of an artwork
    */
   public navigateToArtwork(art: Artwork): void {
@@ -348,8 +380,14 @@ export class PlayerController {
     this.navStartYaw = currentYaw;
     this.navTargetYaw = currentYaw + diff;
 
+    // Calculate horizontal distance and vertical center elevation angle
+    const horizDist = Math.max(0.1, Math.hypot(dirX, dirZ));
+    const targetCenterY = artPos.y || 2.2;
+    const dy = targetCenterY - 1.7;
+    const targetPitch = Math.atan2(dy, horizDist);
+
     this.navStartPitch = this.pitch;
-    this.navTargetPitch = 0;
+    this.navTargetPitch = targetPitch;
 
     this.navProgress = 0;
     this.isNavigating = true;

@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MuseumScene } from './museum/MuseumScene';
 import { StartScreen } from './components/StartScreen';
+import { MapModal } from './components/MapModal';
 import { PlayerState, Artwork, PrewarmState } from './types';
 
 interface InspectPresentationProps {
@@ -51,6 +52,7 @@ export default function App() {
   const sceneRef = useRef<MuseumScene | null>(null);
 
   const [hasEntered, setHasEntered] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const [playerState, setPlayerState] = useState<PlayerState | null>(null);
   const [prewarmState, setPrewarmState] = useState<PrewarmState>({
     loaded: 0,
@@ -58,6 +60,16 @@ export default function App() {
     isComplete: false,
     statusMessage: 'Preparing Exhibition...'
   });
+
+  const toggleMap = useCallback(() => {
+    setIsMapOpen((prev) => {
+      const next = !prev;
+      if (next && document.pointerLockElement) {
+        document.exitPointerLock?.();
+      }
+      return next;
+    });
+  }, []);
 
   // Initialize Three.js Museum Scene on mount
   useEffect(() => {
@@ -71,6 +83,9 @@ export default function App() {
       undefined,
       (pState) => {
         setPrewarmState(pState);
+      },
+      () => {
+        toggleMap();
       }
     );
     sceneRef.current = museum;
@@ -79,7 +94,7 @@ export default function App() {
       museum.dispose();
       sceneRef.current = null;
     };
-  }, []);
+  }, [toggleMap]);
 
   const handleEnterMuseum = () => {
     setHasEntered(true);
@@ -101,6 +116,18 @@ export default function App() {
     }
   };
 
+  const handleTeleport = (x: number, y: number, z: number) => {
+    if (sceneRef.current) {
+      sceneRef.current.teleportPlayer(x, y, z);
+    }
+  };
+
+  const handleNavigateToArtwork = (artwork: Artwork) => {
+    if (sceneRef.current) {
+      sceneRef.current.navigateToArtwork(artwork);
+    }
+  };
+
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black select-none">
       {/* 3D WebGL Canvas Container - 100% full viewport */}
@@ -117,6 +144,16 @@ export default function App() {
         />
       )}
 
+      {/* Architectural Map Overlay [M] (Only rendered when user presses M) */}
+      {hasEntered && isMapOpen && playerState && (
+        <MapModal
+          playerState={playerState}
+          onClose={() => setIsMapOpen(false)}
+          onTeleport={handleTeleport}
+          onNavigateToArtwork={handleNavigateToArtwork}
+        />
+      )}
+
       {/* Clean Fullscreen Artwork Presentation View (Inspect Mode) */}
       {hasEntered && playerState?.isInspectMode && playerState.inspectArtwork && (
         <InspectPresentation
@@ -127,4 +164,5 @@ export default function App() {
     </div>
   );
 }
+
 

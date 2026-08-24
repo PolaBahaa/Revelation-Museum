@@ -39,6 +39,7 @@ export class MuseumScene {
   private onStateUpdate?: (state: PlayerState) => void;
   private onFocusArtwork?: (artwork: Artwork) => void;
   private onPrewarmProgress?: (state: PrewarmState) => void;
+  private onToggleMap?: () => void;
 
   public static setShadowTestMode(mode: 'CURRENT' | 'OFF' | 'STATIC'): void {
     MuseumScene.SHADOW_TEST_MODE = mode;
@@ -52,12 +53,14 @@ export class MuseumScene {
     container: HTMLElement,
     onStateUpdate?: (state: PlayerState) => void,
     onFocusArtwork?: (artwork: Artwork) => void,
-    onPrewarmProgress?: (state: PrewarmState) => void
+    onPrewarmProgress?: (state: PrewarmState) => void,
+    onToggleMap?: () => void
   ) {
     this.container = container;
     this.onStateUpdate = onStateUpdate;
     this.onFocusArtwork = onFocusArtwork;
     this.onPrewarmProgress = onPrewarmProgress;
+    this.onToggleMap = onToggleMap;
     MuseumScene.currentSceneInstance = this;
 
     // Expose development-only diagnostic configuration switches
@@ -214,7 +217,8 @@ export class MuseumScene {
           });
         }
       },
-      this.onFocusArtwork
+      this.onFocusArtwork,
+      this.onToggleMap
     );
   }
 
@@ -442,6 +446,18 @@ export class MuseumScene {
           statusMessage: 'Exhibition Ready'
         });
       }
+    }
+  }
+
+  public teleportPlayer(x: number, y: number, z: number, yaw?: number): void {
+    if (this.playerController) {
+      this.playerController.teleport(x, y, z, yaw);
+    }
+  }
+
+  public navigateToArtwork(art: Artwork): void {
+    if (this.playerController) {
+      this.playerController.navigateToArtwork(art);
     }
   }
 
