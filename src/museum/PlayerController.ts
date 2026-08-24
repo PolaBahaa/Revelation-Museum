@@ -315,8 +315,7 @@ export class PlayerController {
       this.numTimer = null;
     }
 
-    if (isNaN(num) || num < 1 || num > 36) {
-      // Out of valid range (1..36): do nothing
+    if (isNaN(num) || num < 1) {
       return;
     }
 

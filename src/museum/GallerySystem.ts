@@ -39,4 +39,8 @@ export class GallerySystem {
   public getArtworkByNumber(num: number): Artwork | undefined {
     return this.paintingManager.getArtworkByNumber(num);
   }
+
+  public getArtworkCount(): number {
+    return this.paintingManager.getArtworkCount();
+  }
 }

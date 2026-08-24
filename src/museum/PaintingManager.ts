@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Artwork } from '../types';
-import { ALL_ARTWORKS } from './MuseumData';
+import { ALL_ARTWORKS, CANONICAL_WALL_SLOTS, getSlotForArtwork, WallSlot } from './MuseumData';
 import { Lighting } from './Lighting';
 import { DiagnosticProfiler } from './DiagnosticProfiler';
 import { TextureGenerator } from './TextureGenerator';
@@ -10,12 +10,6 @@ export interface InteractiveArtworkMesh {
   mesh: THREE.Mesh;
   worldPosition: THREE.Vector3;
   isRealPNG: boolean;
-}
-
-export interface WallSlot {
-  artworkNumber: number;
-  pos: [number, number, number];
-  rotY: number;
 }
 
 interface SlotRuntimeItem {
@@ -48,75 +42,6 @@ export class PaintingManager {
   private prewarmPromise: Promise<void> | null = null;
   private isDisposed = false;
 
-  // All 36 artwork slots centered directly within architectural wall bays between pilasters
-  private wallSlots: WallSlot[] = [
-    // -----------------------------------------------------------------
-    // HALL 01: THE SEVEN SEALS (Artworks 01 - 06)
-    // Bounds X: [-40, -20], Z: [0, 20] | Pilasters at X: -40, -36, -32, -28, -24, -20
-    // -----------------------------------------------------------------
-    { artworkNumber: 1, pos: [-34.0, 2.6, 0.22], rotY: 0 },           // North Wall Bay 1 (Center -34)
-    { artworkNumber: 2, pos: [-26.0, 2.6, 0.22], rotY: 0 },           // North Wall Bay 2 (Center -26)
-    { artworkNumber: 3, pos: [-34.0, 2.6, 19.78], rotY: Math.PI },    // South Wall Bay 1 (Center -34)
-    { artworkNumber: 4, pos: [-26.0, 2.6, 19.78], rotY: Math.PI },    // South Wall Bay 2 (Center -26)
-    { artworkNumber: 5, pos: [-39.78, 2.6, 6.0], rotY: Math.PI / 2 },  // West Wall Bay 1 (Center 6)
-    { artworkNumber: 6, pos: [-39.78, 2.6, 14.0], rotY: Math.PI / 2 }, // West Wall Bay 2 (Center 14)
-
-    // -----------------------------------------------------------------
-    // HALL 02: THE SEVEN TRUMPETS (Artworks 07 - 12)
-    // Bounds X: [-40, -20], Z: [-25, -5] | Pilasters at X: -40, -36, -32, -28, -24, -20
-    // -----------------------------------------------------------------
-    { artworkNumber: 7, pos: [-34.0, 2.6, -24.78], rotY: 0 },          // North Wall Bay 1
-    { artworkNumber: 8, pos: [-26.0, 2.6, -24.78], rotY: 0 },          // North Wall Bay 2
-    { artworkNumber: 9, pos: [-34.0, 2.6, -5.22], rotY: Math.PI },     // South Wall Bay 1
-    { artworkNumber: 10, pos: [-26.0, 2.6, -5.22], rotY: Math.PI },    // South Wall Bay 2
-    { artworkNumber: 11, pos: [-39.78, 2.6, -19.0], rotY: Math.PI / 2 },// West Wall Bay 1
-    { artworkNumber: 12, pos: [-39.78, 2.6, -11.0], rotY: Math.PI / 2 },// West Wall Bay 2
-
-    // -----------------------------------------------------------------
-    // HALL 03: THE HEAVENLY VISION (Artworks 13 - 18)
-    // Bounds X: [20, 40], Z: [0, 20] | Pilasters at X: 20, 24, 28, 32, 36, 40
-    // -----------------------------------------------------------------
-    { artworkNumber: 13, pos: [26.0, 2.6, 0.22], rotY: 0 },           // North Wall Bay 1 (Center 26)
-    { artworkNumber: 14, pos: [34.0, 2.6, 0.22], rotY: 0 },           // North Wall Bay 2 (Center 34)
-    { artworkNumber: 15, pos: [26.0, 2.6, 19.78], rotY: Math.PI },    // South Wall Bay 1 (Center 26)
-    { artworkNumber: 16, pos: [34.0, 2.6, 19.78], rotY: Math.PI },    // South Wall Bay 2 (Center 34)
-    { artworkNumber: 17, pos: [39.78, 2.6, 6.0], rotY: -Math.PI / 2 }, // East Wall Bay 1 (Center 6)
-    { artworkNumber: 18, pos: [39.78, 2.6, 14.0], rotY: -Math.PI / 2 },// East Wall Bay 2 (Center 14)
-
-    // -----------------------------------------------------------------
-    // HALL 04: THE SEVEN BOWLS (Artworks 19 - 24)
-    // Bounds X: [20, 40], Z: [-25, -5] | Pilasters at X: 20, 24, 28, 32, 36, 40
-    // -----------------------------------------------------------------
-    { artworkNumber: 19, pos: [26.0, 2.6, -24.78], rotY: 0 },         // North Wall Bay 1
-    { artworkNumber: 20, pos: [34.0, 2.6, -24.78], rotY: 0 },         // North Wall Bay 2
-    { artworkNumber: 21, pos: [26.0, 2.6, -5.22], rotY: Math.PI },    // South Wall Bay 1
-    { artworkNumber: 22, pos: [34.0, 2.6, -5.22], rotY: Math.PI },    // South Wall Bay 2
-    { artworkNumber: 23, pos: [39.78, 2.6, -19.0], rotY: -Math.PI / 2 },// East Wall Bay 1
-    { artworkNumber: 24, pos: [39.78, 2.6, -11.0], rotY: -Math.PI / 2 },// East Wall Bay 2
-
-    // -----------------------------------------------------------------
-    // HALL 05: THE FINAL VICTORY (Artworks 25 - 30)
-    // Bounds X: [-26, -4], Z: [-48, -28]
-    // -----------------------------------------------------------------
-    { artworkNumber: 25, pos: [-20.5, 2.6, -47.78], rotY: 0 },        // North Wall Bay 1
-    { artworkNumber: 26, pos: [-9.5, 2.6, -47.78], rotY: 0 },         // North Wall Bay 2
-    { artworkNumber: 27, pos: [-20.5, 2.6, -28.22], rotY: Math.PI },  // South Wall Bay 1
-    { artworkNumber: 28, pos: [-9.5, 2.6, -28.22], rotY: Math.PI },   // South Wall Bay 2
-    { artworkNumber: 29, pos: [-25.78, 2.6, -42.0], rotY: Math.PI / 2 },// West Wall Bay 1
-    { artworkNumber: 30, pos: [-25.78, 2.6, -34.0], rotY: Math.PI / 2 },// West Wall Bay 2
-
-    // -----------------------------------------------------------------
-    // HALL 06: THE NEW JERUSALEM (Artworks 31 - 36)
-    // Bounds X: [4, 26], Z: [-48, -28]
-    // -----------------------------------------------------------------
-    { artworkNumber: 31, pos: [9.5, 2.6, -47.78], rotY: 0 },          // North Wall Bay 1
-    { artworkNumber: 32, pos: [20.5, 2.6, -47.78], rotY: 0 },         // North Wall Bay 2
-    { artworkNumber: 33, pos: [9.5, 2.6, -28.22], rotY: Math.PI },    // South Wall Bay 1
-    { artworkNumber: 34, pos: [20.5, 2.6, -28.22], rotY: Math.PI },   // South Wall Bay 2
-    { artworkNumber: 35, pos: [25.78, 2.6, -42.0], rotY: -Math.PI / 2 },// East Wall Bay 1
-    { artworkNumber: 36, pos: [25.78, 2.6, -34.0], rotY: -Math.PI / 2 } // East Wall Bay 2
-  ];
-
   constructor(lighting: Lighting) {
     this.lighting = lighting;
   }
@@ -128,10 +53,8 @@ export class PaintingManager {
   public initAllArtworks(): void {
     if (this.slotRuntimeItems.length > 0) return;
 
-    for (const slot of this.wallSlots) {
-      const art = ALL_ARTWORKS.find(a => a.number === slot.artworkNumber);
-      if (!art) continue;
-
+    for (const art of ALL_ARTWORKS) {
+      const slot = getSlotForArtwork(art);
       art.position = slot.pos;
       art.rotation = [0, slot.rotY, 0];
 
@@ -245,7 +168,8 @@ export class PaintingManager {
     if (!PaintingManager.PREWARMING_ENABLED) {
       console.log('[PaintingManager] Prewarming disabled via configuration switch.');
       this.isPrewarmed = true;
-      if (onProgress) onProgress(36, 36, 'Ready (Prewarming skipped)');
+      const total = ALL_ARTWORKS.length;
+      if (onProgress) onProgress(total, total, 'Ready (Prewarming skipped)');
       return Promise.resolve();
     }
 
@@ -466,6 +390,10 @@ export class PaintingManager {
 
   public getArtworkByNumber(num: number): Artwork | undefined {
     return ALL_ARTWORKS.find(a => a.number === num);
+  }
+
+  public getArtworkCount(): number {
+    return ALL_ARTWORKS.length;
   }
 }
 

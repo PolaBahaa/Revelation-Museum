@@ -224,14 +224,14 @@ export class DiagnosticProfiler {
     );
   }
 
-  public recordPrewarmComplete(): void {
+  public recordPrewarmComplete(totalArtworks: number = 36): void {
     this.prewarmCompleteTime = performance.now();
     const totalDuration = this.prewarmCompleteTime - this.prewarmStartTime;
     
     // Aggregated texture summary (Req 9, 10)
     console.log(
       `[DIAGNOSTIC PREWARM SUMMARY in ${totalDuration.toFixed(1)}ms]\n` +
-      `  • Textures: ${this.gpuInitializedCount}/36 GPU-initialized (${this.textureErrorCount} failed, ${this.uniqueFailedUrls.size} unique missing URLs)\n` +
+      `  • Textures: ${this.gpuInitializedCount}/${totalArtworks} GPU-initialized (${this.textureErrorCount} failed, ${this.uniqueFailedUrls.size} unique missing URLs)\n` +
       `  • Shaders: ${this.finalShaderProgramsCount} programs compiled\n` +
       `  • Duplicate requests blocked: ${this.duplicateTextureRequestsBlocked}`
     );

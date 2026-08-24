@@ -3,6 +3,7 @@ import { MuseumScene } from './museum/MuseumScene';
 import { StartScreen } from './components/StartScreen';
 import { MapModal } from './components/MapModal';
 import { PlayerState, Artwork, PrewarmState } from './types';
+import { ALL_ARTWORKS } from './museum/MuseumData';
 
 interface InspectPresentationProps {
   artwork: Artwork;
@@ -56,7 +57,7 @@ export default function App() {
   const [playerState, setPlayerState] = useState<PlayerState | null>(null);
   const [prewarmState, setPrewarmState] = useState<PrewarmState>({
     loaded: 0,
-    total: 36,
+    total: ALL_ARTWORKS.length,
     isComplete: false,
     statusMessage: 'Preparing Exhibition...'
   });

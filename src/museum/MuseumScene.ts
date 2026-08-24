@@ -402,11 +402,13 @@ export class MuseumScene {
 
       if (this.isDisposed) return;
 
+      const totalArtworks = this.gallerySystem.getArtworkCount();
+
       // 2. Yield to browser thread before shader precompilation
       if (this.onPrewarmProgress) {
         this.onPrewarmProgress({
-          loaded: 36,
-          total: 36,
+          loaded: totalArtworks,
+          total: totalArtworks,
           isComplete: false,
           statusMessage: 'Compiling museum shaders...'
         });
@@ -425,23 +427,24 @@ export class MuseumScene {
 
       const finalPrograms = this.renderer.info.programs ? this.renderer.info.programs.length : 0;
       profiler.recordShaderPrecompileComplete(finalPrograms);
-      profiler.recordPrewarmComplete();
+      profiler.recordPrewarmComplete(totalArtworks);
 
       // 4. Prewarm completed
       if (!this.isDisposed && this.onPrewarmProgress) {
         this.onPrewarmProgress({
-          loaded: 36,
-          total: 36,
+          loaded: totalArtworks,
+          total: totalArtworks,
           isComplete: true,
           statusMessage: 'Exhibition Ready'
         });
       }
     } catch (err) {
       console.warn('[MuseumScene] Prewarm encountered non-fatal notice:', err);
+      const totalArtworks = this.gallerySystem.getArtworkCount();
       if (!this.isDisposed && this.onPrewarmProgress) {
         this.onPrewarmProgress({
-          loaded: 36,
-          total: 36,
+          loaded: totalArtworks,
+          total: totalArtworks,
           isComplete: true,
           statusMessage: 'Exhibition Ready'
         });

@@ -1,6 +1,6 @@
 export interface Artwork {
   id: string;
-  number: number; // 1 to 36
+  number: number;
   title: string;
   subTitle: string;
   scripture: string;

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ALL_ARTWORKS } from './MuseumData';
 
 export class TextureGenerator {
   private static canvasCache: Map<string, THREE.CanvasTexture> = new Map();
@@ -1019,7 +1020,7 @@ export class TextureGenerator {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fbbf24';
     ctx.font = 'bold 22px Georgia, serif';
-    ctx.fillText(`EXHIBITION NO. ${art.number} OF 36`, cx, bannerY + 34);
+    ctx.fillText(`EXHIBITION NO. ${art.number} OF ${ALL_ARTWORKS.length}`, cx, bannerY + 34);
 
     // Title
     ctx.fillStyle = '#fffbeb';

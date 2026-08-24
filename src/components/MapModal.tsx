@@ -274,7 +274,7 @@ export const MapModal: React.FC<MapModalProps> = ({
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-600 border border-amber-300 inline-block" />
-                  Artworks (1–36)
+                  Artworks (1–{ALL_ARTWORKS.length})
                 </span>
               </div>
               <span className="text-zinc-500 italic">Click any room or artwork to navigate</span>
@@ -290,7 +290,7 @@ export const MapModal: React.FC<MapModalProps> = ({
               {hoveredArtwork ? (
                 <div className="space-y-1.5 animate-fadeIn">
                   <div className="flex items-center justify-between text-xs text-amber-400 font-mono">
-                    <span>EXHIBITION #{hoveredArtwork.number} OF 36</span>
+                    <span>EXHIBITION #{hoveredArtwork.number} OF {ALL_ARTWORKS.length}</span>
                     <span className="text-zinc-400">{hoveredArtwork.hallName}</span>
                   </div>
                   <h4 className="text-sm font-serif font-bold text-amber-200">

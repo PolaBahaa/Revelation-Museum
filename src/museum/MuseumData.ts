@@ -603,3 +603,132 @@ export const ALL_ARTWORKS: Artwork[] = [
 MUSEUM_HALLS.forEach(hall => {
   hall.artworks = ALL_ARTWORKS.filter(art => art.hallId === hall.id);
 });
+
+export interface WallSlot {
+  artworkNumber: number;
+  pos: [number, number, number];
+  rotY: number;
+  hallId?: string;
+}
+
+export const CANONICAL_WALL_SLOTS: WallSlot[] = [
+  // -----------------------------------------------------------------
+  // HALL 01: THE SEVEN SEALS (Artworks 01 - 06)
+  // Bounds X: [-40, -20], Z: [0, 20]
+  // -----------------------------------------------------------------
+  { artworkNumber: 1, pos: [-34.0, 2.6, 0.22], rotY: 0, hallId: 'hall_01' },           // North Wall Bay 1
+  { artworkNumber: 2, pos: [-26.0, 2.6, 0.22], rotY: 0, hallId: 'hall_01' },           // North Wall Bay 2
+  { artworkNumber: 3, pos: [-34.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_01' },    // South Wall Bay 1
+  { artworkNumber: 4, pos: [-26.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_01' },    // South Wall Bay 2
+  { artworkNumber: 5, pos: [-39.78, 2.6, 6.0], rotY: Math.PI / 2, hallId: 'hall_01' },  // West Wall Bay 1
+  { artworkNumber: 6, pos: [-39.78, 2.6, 14.0], rotY: Math.PI / 2, hallId: 'hall_01' }, // West Wall Bay 2
+
+  // -----------------------------------------------------------------
+  // HALL 02: THE SEVEN TRUMPETS (Artworks 07 - 12)
+  // Bounds X: [-40, -20], Z: [-25, -5]
+  // -----------------------------------------------------------------
+  { artworkNumber: 7, pos: [-34.0, 2.6, -24.78], rotY: 0, hallId: 'hall_02' },          // North Wall Bay 1
+  { artworkNumber: 8, pos: [-26.0, 2.6, -24.78], rotY: 0, hallId: 'hall_02' },          // North Wall Bay 2
+  { artworkNumber: 9, pos: [-34.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_02' },     // South Wall Bay 1
+  { artworkNumber: 10, pos: [-26.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_02' },    // South Wall Bay 2
+  { artworkNumber: 11, pos: [-39.78, 2.6, -19.0], rotY: Math.PI / 2, hallId: 'hall_02' },// West Wall Bay 1
+  { artworkNumber: 12, pos: [-39.78, 2.6, -11.0], rotY: Math.PI / 2, hallId: 'hall_02' },// West Wall Bay 2
+
+  // -----------------------------------------------------------------
+  // HALL 03: THE HEAVENLY VISION (Artworks 13 - 18)
+  // Bounds X: [20, 40], Z: [0, 20]
+  // -----------------------------------------------------------------
+  { artworkNumber: 13, pos: [26.0, 2.6, 0.22], rotY: 0, hallId: 'hall_03' },           // North Wall Bay 1
+  { artworkNumber: 14, pos: [34.0, 2.6, 0.22], rotY: 0, hallId: 'hall_03' },           // North Wall Bay 2
+  { artworkNumber: 15, pos: [26.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_03' },    // South Wall Bay 1
+  { artworkNumber: 16, pos: [34.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_03' },    // South Wall Bay 2
+  { artworkNumber: 17, pos: [39.78, 2.6, 6.0], rotY: -Math.PI / 2, hallId: 'hall_03' }, // East Wall Bay 1
+  { artworkNumber: 18, pos: [39.78, 2.6, 14.0], rotY: -Math.PI / 2, hallId: 'hall_03' },// East Wall Bay 2
+
+  // -----------------------------------------------------------------
+  // HALL 04: THE SEVEN BOWLS (Artworks 19 - 24)
+  // Bounds X: [20, 40], Z: [-25, -5]
+  // -----------------------------------------------------------------
+  { artworkNumber: 19, pos: [26.0, 2.6, -24.78], rotY: 0, hallId: 'hall_04' },         // North Wall Bay 1
+  { artworkNumber: 20, pos: [34.0, 2.6, -24.78], rotY: 0, hallId: 'hall_04' },         // North Wall Bay 2
+  { artworkNumber: 21, pos: [26.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_04' },    // South Wall Bay 1
+  { artworkNumber: 22, pos: [34.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_04' },    // South Wall Bay 2
+  { artworkNumber: 23, pos: [39.78, 2.6, -19.0], rotY: -Math.PI / 2, hallId: 'hall_04' },// East Wall Bay 1
+  { artworkNumber: 24, pos: [39.78, 2.6, -11.0], rotY: -Math.PI / 2, hallId: 'hall_04' },// East Wall Bay 2
+
+  // -----------------------------------------------------------------
+  // HALL 05: THE FINAL VICTORY (Artworks 25 - 30)
+  // Bounds X: [-26, -4], Z: [-47, -29] | North wall Z: -47, South wall Z: -29
+  // -----------------------------------------------------------------
+  { artworkNumber: 25, pos: [-20.5, 2.6, -46.78], rotY: 0, hallId: 'hall_05' },        // North Wall Bay 1
+  { artworkNumber: 26, pos: [-9.5, 2.6, -46.78], rotY: 0, hallId: 'hall_05' },         // North Wall Bay 2
+  { artworkNumber: 27, pos: [-20.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_05' },  // South Wall Bay 1
+  { artworkNumber: 28, pos: [-9.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_05' },   // South Wall Bay 2
+  { artworkNumber: 29, pos: [-25.78, 2.6, -42.0], rotY: Math.PI / 2, hallId: 'hall_05' },// West Wall Bay 1
+  { artworkNumber: 30, pos: [-25.78, 2.6, -34.0], rotY: Math.PI / 2, hallId: 'hall_05' },// West Wall Bay 2
+
+  // -----------------------------------------------------------------
+  // HALL 06: THE NEW JERUSALEM (Artworks 31 - 36)
+  // Bounds X: [4, 26], Z: [-47, -29] | North wall Z: -47, South wall Z: -29
+  // -----------------------------------------------------------------
+  { artworkNumber: 31, pos: [9.5, 2.6, -46.78], rotY: 0, hallId: 'hall_06' },          // North Wall Bay 1
+  { artworkNumber: 32, pos: [20.5, 2.6, -46.78], rotY: 0, hallId: 'hall_06' },         // North Wall Bay 2
+  { artworkNumber: 33, pos: [9.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_06' },    // South Wall Bay 1
+  { artworkNumber: 34, pos: [20.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_06' },   // South Wall Bay 2
+  { artworkNumber: 35, pos: [25.78, 2.6, -42.0], rotY: -Math.PI / 2, hallId: 'hall_06' },// East Wall Bay 1
+  { artworkNumber: 36, pos: [25.78, 2.6, -34.0], rotY: -Math.PI / 2, hallId: 'hall_06' },// East Wall Bay 2
+
+  // -----------------------------------------------------------------
+  // EXTENDED PALACE WALL SLOTS (For Artworks 37+)
+  // -----------------------------------------------------------------
+  // Final Revelation Throne Gallery (Center: [0, 0, -68], Size: [24, 7, 18], X: -12..12, Z: -77..-59)
+  { artworkNumber: 37, pos: [-11.78, 2.6, -72.0], rotY: Math.PI / 2, hallId: 'final_hall' },
+  { artworkNumber: 38, pos: [-11.78, 2.6, -64.0], rotY: Math.PI / 2, hallId: 'final_hall' },
+  { artworkNumber: 39, pos: [11.78, 2.6, -72.0], rotY: -Math.PI / 2, hallId: 'final_hall' },
+  { artworkNumber: 40, pos: [11.78, 2.6, -64.0], rotY: -Math.PI / 2, hallId: 'final_hall' },
+  { artworkNumber: 41, pos: [-7.0, 2.6, -76.78], rotY: 0, hallId: 'final_hall' },
+  { artworkNumber: 42, pos: [7.0, 2.6, -76.78], rotY: 0, hallId: 'final_hall' },
+
+  // Grand Reception Lobby (Center: [0, 0, 32], Size: [24, 7.5, 24], X: -12..12, Z: 20..44)
+  { artworkNumber: 43, pos: [-11.78, 2.6, 26.0], rotY: Math.PI / 2, hallId: 'lobby' },
+  { artworkNumber: 44, pos: [-11.78, 2.6, 38.0], rotY: Math.PI / 2, hallId: 'lobby' },
+  { artworkNumber: 45, pos: [11.78, 2.6, 26.0], rotY: -Math.PI / 2, hallId: 'lobby' },
+  { artworkNumber: 46, pos: [11.78, 2.6, 38.0], rotY: -Math.PI / 2, hallId: 'lobby' },
+  { artworkNumber: 47, pos: [-7.0, 2.6, 20.22], rotY: 0, hallId: 'lobby' },
+  { artworkNumber: 48, pos: [7.0, 2.6, 20.22], rotY: 0, hallId: 'lobby' },
+
+  // Sovereign Central Rotunda (Center: [0, 0, 0], Size: [26, 8, 22], X: -13..13, Z: -11..11)
+  { artworkNumber: 49, pos: [-12.78, 2.6, 7.0], rotY: Math.PI / 2, hallId: 'rotunda' },
+  { artworkNumber: 50, pos: [-12.78, 2.6, -7.0], rotY: Math.PI / 2, hallId: 'rotunda' },
+  { artworkNumber: 51, pos: [12.78, 2.6, 7.0], rotY: -Math.PI / 2, hallId: 'rotunda' },
+  { artworkNumber: 52, pos: [12.78, 2.6, -7.0], rotY: -Math.PI / 2, hallId: 'rotunda' }
+];
+
+/**
+ * Assigns slot coordinates and rotations to all artworks dynamically
+ */
+export function getSlotForArtwork(art: Artwork): WallSlot {
+  const existingSlot = CANONICAL_WALL_SLOTS.find(s => s.artworkNumber === art.number);
+  if (existingSlot) {
+    return existingSlot;
+  }
+
+  // Dynamic fallback placement along museum corridors or final galleries for any number > 52
+  const idx = art.number - 53;
+  const corridorZ = -2.5 + (idx % 8) * 4.0 - 14.0;
+  const isWest = idx % 2 === 0;
+  return {
+    artworkNumber: art.number,
+    pos: [isWest ? -13.22 : 13.22, 2.6, corridorZ],
+    rotY: isWest ? -Math.PI / 2 : Math.PI / 2,
+    hallId: isWest ? 'corridor_west' : 'corridor_east'
+  };
+}
+
+// Pre-initialize world positions for all canonical artworks
+ALL_ARTWORKS.forEach(art => {
+  const slot = getSlotForArtwork(art);
+  art.position = slot.pos;
+  art.rotation = [0, slot.rotY, 0];
+});
+

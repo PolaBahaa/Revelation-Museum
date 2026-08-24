@@ -1,6 +1,7 @@
 import React from 'react';
 import { Compass, Eye, Move, Sparkles, Loader2 } from 'lucide-react';
 import { PrewarmState } from '../types';
+import { ALL_ARTWORKS } from '../museum/MuseumData';
 
 interface StartScreenProps {
   onEnter: () => void;
@@ -35,7 +36,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onEnter, prewarmState 
 
         <p className="text-zinc-300 text-sm max-w-xl mx-auto leading-relaxed font-sans">
           Welcome to Prophetia Museum, a 3D WebGL classical sanctuary inspired by European royal architecture.
-          Explore 36 sacred masterworks across six magnificent exhibition halls with full first-person navigation.
+          Explore {ALL_ARTWORKS.length} sacred masterworks across magnificent exhibition halls with full first-person navigation.
         </p>
 
         {/* Controls Grid */}
