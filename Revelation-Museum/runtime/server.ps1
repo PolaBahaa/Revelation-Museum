@@ -5,19 +5,53 @@
 
 param(
     [int]$Port = 3456,
-    [string]$AppDir = ""
+    [string]$AppDir = "",
+    [string]$LogFile = ""
 )
 
+$ErrorActionPreference = "Stop"
+
+# Helper for diagnostic logging
+function Write-ServerLog([string]$Message) {
+    $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+    $Line = "[$Timestamp] $Message"
+    if (-not [string]::IsNullOrEmpty($LogFile)) {
+        try {
+            Add-Content -Path $LogFile -Value $Line -ErrorAction SilentlyContinue
+        } catch {}
+    }
+}
+
+Write-ServerLog "Server script invoked with Port=$Port, AppDir='$AppDir'"
+
+# 1. Resolve Application Directory
 if ([string]::IsNullOrEmpty($AppDir)) {
     $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    if ([string]::IsNullOrEmpty($ScriptDir)) {
+        $ScriptDir = $PSScriptRoot
+    }
     $AppDir = Join-Path (Split-Path -Parent $ScriptDir) "app"
 }
 
+$AppDir = [System.IO.Path]::GetFullPath($AppDir)
+Write-ServerLog "Resolved AppDir: '$AppDir'"
+
 if (-not (Test-Path $AppDir)) {
-    Write-Error "Application directory not found: $AppDir"
+    $ErrMsg = "FATAL: Application directory not found: $AppDir"
+    Write-ServerLog $ErrMsg
+    Write-Error $ErrMsg
     exit 1
 }
 
+$IndexHtmlPath = Join-Path $AppDir "index.html"
+if (-not (Test-Path $IndexHtmlPath)) {
+    $ErrMsg = "FATAL: index.html not found inside: $AppDir"
+    Write-ServerLog $ErrMsg
+    Write-Error $ErrMsg
+    exit 1
+}
+
+# 2. MIME Types
 $MimeTypes = @{
     ".html"  = "text/html; charset=utf-8"
     ".htm"   = "text/html; charset=utf-8"
@@ -39,36 +73,56 @@ $MimeTypes = @{
     ".txt"   = "text/plain; charset=utf-8"
 }
 
+# 3. Create & Bind HttpListener strictly to 127.0.0.1
 $Listener = New-Object System.Net.HttpListener
 $Prefix = "http://127.0.0.1:$Port/"
 $Listener.Prefixes.Add($Prefix)
 
 try {
     $Listener.Start()
+    Write-ServerLog "HttpListener successfully started and listening on $Prefix"
 } catch {
-    Write-Error "Failed to bind HttpListener to $Prefix: $_"
-    exit 1
+    $ErrMsg = "FATAL: Failed to bind HttpListener to $Prefix - $($_.Exception.Message)"
+    Write-ServerLog $ErrMsg
+    Write-Error $ErrMsg
+    exit 2
 }
 
+# 4. Request Serving Loop
 while ($Listener.IsListening) {
     try {
         $Context = $Listener.GetContext()
         $Request = $Context.Request
         $Response = $Context.Response
 
-        $UrlPath = $Request.Url.LocalPath.TrimStart('/')
-        if ([string]::IsNullOrEmpty($UrlPath)) {
-            $UrlPath = "index.html"
+        $UrlPath = $Request.Url.LocalPath
+
+        # Health Check Endpoint
+        if ($UrlPath -eq "/__museum_health") {
+            $HealthBytes = [System.Text.Encoding]::UTF8.GetBytes("MUSEUM_SERVER_READY")
+            $Response.ContentType = "text/plain; charset=utf-8"
+            $Response.StatusCode = 200
+            $Response.Headers.Add("Cache-Control", "no-cache")
+            $Response.ContentLength64 = $HealthBytes.Length
+            $Response.OutputStream.Write($HealthBytes, 0, $HealthBytes.Length)
+            $Response.Close()
+            continue
+        }
+
+        # Clean requested path
+        $CleanPath = $UrlPath.TrimStart('/')
+        if ([string]::IsNullOrEmpty($CleanPath)) {
+            $CleanPath = "index.html"
         }
 
         # Normalize relative path to prevent directory traversal
-        $SafeRelPath = $UrlPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+        $SafeRelPath = $CleanPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
         $FilePath = [System.IO.Path]::GetFullPath((Join-Path $AppDir $SafeRelPath))
 
         # Security check: must reside inside AppDir
         if (-not $FilePath.StartsWith($AppDir, [System.StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path $FilePath -PathType Leaf)) {
             # SPA Fallback to index.html if route not found
-            $FilePath = Join-Path $AppDir "index.html"
+            $FilePath = $IndexHtmlPath
         }
 
         if (Test-Path $FilePath -PathType Leaf) {
@@ -92,6 +146,7 @@ while ($Listener.IsListening) {
 
         $Response.Close()
     } catch {
-        # Loop continues until listener is stopped
+        # Loop continues unless listener stopped or fatal error
     }
 }
+

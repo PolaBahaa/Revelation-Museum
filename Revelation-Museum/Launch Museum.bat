@@ -2,12 +2,18 @@
 setlocal enabledelayedexpansion
 title Revelation Museum Launcher
 
-:: Determine base directories
+:: Determine absolute base directory from batch file path
 set "BASE_DIR=%~dp0"
-set "APP_DIR=%BASE_DIR%app"
 set "RUNTIME_DIR=%BASE_DIR%runtime"
 
-:: Launch silently via PowerShell launcher
-powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%RUNTIME_DIR%\launcher.ps1"
+:: Check if debug flag was passed
+set "WINDOW_STYLE=Hidden"
+for %%A in (%*) do (
+    if /I "%%A"=="--debug" set "WINDOW_STYLE=Normal"
+    if /I "%%A"=="-debug" set "WINDOW_STYLE=Normal"
+)
 
-exit /b 0
+:: Execute the central PowerShell launcher with bypassed execution policy
+powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle %WINDOW_STYLE% -File "%RUNTIME_DIR%\launcher.ps1" %*
+
+exit /b %ERRORLEVEL%
