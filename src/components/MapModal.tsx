@@ -333,47 +333,48 @@ export const MapModal: React.FC<MapModalProps> = ({
                 <Navigation className="w-3.5 h-3.5" /> Exhibition Halls & Landmark Zones
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <button
-                  onClick={() => { onTeleport(0, 1.7, 50); onClose(); }}
-                  className="p-2.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-left border border-zinc-700/80 text-zinc-200 cursor-pointer transition-all hover:border-amber-500/50"
-                >
-                  <div className="font-semibold text-amber-300">Grand Entrance</div>
-                  <div className="text-[10px] text-zinc-400">Main Vestibule (Z: 50m)</div>
-                </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                {[
+                  { id: 'hall_01', label: 'Hall 01', pos: [-30, 1.7, 10], hallId: 'hall_01' },
+                  { id: 'hall_02', label: 'Hall 02', pos: [-30, 1.7, -15], hallId: 'hall_02' },
+                  { id: 'hall_03', label: 'Hall 03', pos: [30, 1.7, 10], hallId: 'hall_03' },
+                  { id: 'hall_04', label: 'Hall 04', pos: [30, 1.7, -15], hallId: 'hall_04' },
+                  { id: 'hall_05', label: 'Hall 05', pos: [-15, 1.7, -38], hallId: 'hall_05' },
+                  { id: 'hall_06', label: 'Hall 06', pos: [15, 1.7, -38], hallId: 'hall_06' },
+                  { id: 'final_hall', label: 'Throne Gallery', pos: [0, 1.7, -68], hallId: 'final_hall' },
+                  { id: 'rotunda', label: 'Central Rotunda', pos: [0, 1.7, 0], hallId: 'rotunda' },
+                  { id: 'lobby', label: 'Grand Lobby', pos: [0, 1.7, 32], hallId: 'lobby' },
+                ].map((zone) => {
+                  const artworkCount = zone.hallId
+                    ? FINAL_ARTWORKS.filter((a) => a.hallId === zone.hallId).length
+                    : 0;
 
-                <button
-                  onClick={() => { onTeleport(0, 1.7, 0); onClose(); }}
-                  className="p-2.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-left border border-zinc-700/80 text-zinc-200 cursor-pointer transition-all hover:border-amber-500/50"
-                >
-                  <div className="font-semibold text-amber-300">Central Rotunda</div>
-                  <div className="text-[10px] text-zinc-400">Sovereign Dome (Z: 0m)</div>
-                </button>
-
-                {MUSEUM_HALLS.map((hall) => (
-                  <button
-                    key={hall.id}
-                    onMouseEnter={() => setSelectedHallId(hall.id)}
-                    onMouseLeave={() => setSelectedHallId(null)}
-                    onClick={() => {
-                      onTeleport(hall.center[0], 1.7, hall.center[2]);
-                      onClose();
-                    }}
-                    className={`p-2.5 rounded-lg text-left border transition-all cursor-pointer ${
-                      selectedHallId === hall.id
-                        ? 'bg-zinc-700 border-amber-400 text-white'
-                        : 'bg-zinc-800/80 hover:bg-zinc-700 border-zinc-700/80 text-zinc-200'
-                    }`}
-                  >
-                    <div className="font-semibold text-amber-300 flex items-center justify-between">
-                      <span>{hall.code}: {hall.title}</span>
-                      <span className="text-[10px] font-mono text-amber-400/80">
-                        {FINAL_ARTWORKS.filter((a) => a.hallId === hall.id).length} Artworks
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400 truncate">{hall.subTitle}</div>
-                  </button>
-                ))}
+                  return (
+                    <button
+                      key={zone.id}
+                      onMouseEnter={() => setSelectedHallId(zone.hallId)}
+                      onMouseLeave={() => setSelectedHallId(null)}
+                      onClick={() => {
+                        onTeleport(zone.pos[0], zone.pos[1], zone.pos[2]);
+                        onClose();
+                      }}
+                      className={`p-2.5 rounded-lg text-left border transition-all cursor-pointer ${
+                        selectedHallId === zone.hallId
+                          ? 'bg-zinc-700 border-amber-400 text-white'
+                          : 'bg-zinc-800/80 hover:bg-zinc-700 border-zinc-700/80 text-zinc-200'
+                      }`}
+                    >
+                      <div className="font-semibold text-amber-300 flex items-center justify-between">
+                        <span>{zone.label}</span>
+                        {artworkCount > 0 && (
+                          <span className="text-[10px] font-mono text-amber-400/80">
+                            {artworkCount}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

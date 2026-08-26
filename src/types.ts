@@ -21,7 +21,7 @@ export interface Artwork {
 
 export interface WallSlot {
   id: string;             // Unique identifier (e.g. 'hall_01_slot_01')
-  slotIndex: number;      // 1-based index (1 to 48)
+  slotIndex: number;      // 1-based index (1 to 84)
   hallId: string;         // 'hall_01', 'hall_02', ..., 'final_hall', 'lobby', 'rotunda'
   hallName: string;       // Human-readable hall name
   wallDescription: string;// Descriptive location on wall (e.g. 'North Wall Bay 1')

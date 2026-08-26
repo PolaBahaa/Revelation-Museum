@@ -5,10 +5,10 @@ import rawDiscoveredPaintings from './discoveredPaintings.json';
 export type { WallSlot };
 
 /**
- * CANONICAL MUSEUM CAPACITY: Exactly 48 real, valid physical wall display slots.
- * Derived from the verified architectural audit (Slots 1-42 + 47-48/Rotunda; invalid niches 43-46 pruned).
+ * CANONICAL MUSEUM CAPACITY: Exactly 84 real, valid physical wall display slots.
+ * Derived from the verified architectural audit (48 original slots + 36 additional verified slots = 84 total).
  */
-export const MAX_ARTWORKS = 48;
+export const MAX_ARTWORKS = 84;
 
 export interface DiscoveredPaintingFile {
   filename: string;
@@ -702,10 +702,574 @@ const MANUAL_ARTWORKS: Artwork[] = [
     passage: 'Then I saw a great white throne and him who was seated on it. The earth and the heavens fled from his presence... He who was seated on the throne said, "I am making everything new! I am the Alpha and the Omega, the Beginning and the End."',
     description: 'The monumental culmination masterpiece in the Final Throne Gallery: The eternal throne surrounded by celestial radiance and the renewal of all creation.',
     hallId: 'final_hall',
-    hallName: 'Final Revelation Throne Gallery',
+    hallName: 'The Grand Sovereign Hall',
     canvasColorPrimary: '#4a044e',
     canvasColorSecondary: '#fde047',
     symbolism: 'White Throne, Alpha and Omega, Celestial Splendor'
+  },
+  {
+    id: 'art_38',
+    number: 38,
+    title: 'Artwork 38',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'final_hall',
+    hallName: 'The Grand Sovereign Hall',
+    textureUrl: '/paintings/38.png'
+  },
+  {
+    id: 'art_39',
+    number: 39,
+    title: 'Artwork 39',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'final_hall',
+    hallName: 'The Grand Sovereign Hall',
+    textureUrl: '/paintings/39.png'
+  },
+  {
+    id: 'art_40',
+    number: 40,
+    title: 'Artwork 40',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'final_hall',
+    hallName: 'The Grand Sovereign Hall',
+    textureUrl: '/paintings/40.png'
+  },
+  {
+    id: 'art_41',
+    number: 41,
+    title: 'Artwork 41',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'final_hall',
+    hallName: 'The Grand Sovereign Hall',
+    textureUrl: '/paintings/41.png'
+  },
+  {
+    id: 'art_42',
+    number: 42,
+    title: 'Artwork 42',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'final_hall',
+    hallName: 'The Grand Sovereign Hall',
+    textureUrl: '/paintings/42.png'
+  },
+  {
+    id: 'art_43',
+    number: 43,
+    title: 'Artwork 43',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'lobby',
+    hallName: 'Grand Reception Lobby',
+    textureUrl: '/paintings/43.png'
+  },
+  {
+    id: 'art_44',
+    number: 44,
+    title: 'Artwork 44',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'lobby',
+    hallName: 'Grand Reception Lobby',
+    textureUrl: '/paintings/44.png'
+  },
+  {
+    id: 'art_45',
+    number: 45,
+    title: 'Artwork 45',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/45.png'
+  },
+  {
+    id: 'art_46',
+    number: 46,
+    title: 'Artwork 46',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/46.png'
+  },
+  {
+    id: 'art_47',
+    number: 47,
+    title: 'Artwork 47',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/47.png'
+  },
+  {
+    id: 'art_48',
+    number: 48,
+    title: 'Artwork 48',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/48.png'
+  },
+  {
+    id: 'art_49',
+    number: 49,
+    title: 'Artwork 49',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_south',
+    hallName: 'Royal Processional Gallery',
+    textureUrl: '/paintings/49.png'
+  },
+  {
+    id: 'art_50',
+    number: 50,
+    title: 'Artwork 50',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_south',
+    hallName: 'Royal Processional Gallery',
+    textureUrl: '/paintings/50.png'
+  },
+  {
+    id: 'art_51',
+    number: 51,
+    title: 'Artwork 51',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_south',
+    hallName: 'Royal Processional Gallery',
+    textureUrl: '/paintings/51.png'
+  },
+  {
+    id: 'art_52',
+    number: 52,
+    title: 'Artwork 52',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_south',
+    hallName: 'Royal Processional Gallery',
+    textureUrl: '/paintings/52.png'
+  },
+  {
+    id: 'art_53',
+    number: 53,
+    title: 'Artwork 53',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'lobby',
+    hallName: 'Grand Reception Lobby',
+    textureUrl: '/paintings/53.png'
+  },
+  {
+    id: 'art_54',
+    number: 54,
+    title: 'Artwork 54',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'lobby',
+    hallName: 'Grand Reception Lobby',
+    textureUrl: '/paintings/54.png'
+  },
+  {
+    id: 'art_55',
+    number: 55,
+    title: 'Artwork 55',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/55.png'
+  },
+  {
+    id: 'art_56',
+    number: 56,
+    title: 'Artwork 56',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/56.png'
+  },
+  {
+    id: 'art_57',
+    number: 57,
+    title: 'Artwork 57',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/57.png'
+  },
+  {
+    id: 'art_58',
+    number: 58,
+    title: 'Artwork 58',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'rotunda',
+    hallName: 'Central Rotunda',
+    textureUrl: '/paintings/58.png'
+  },
+  {
+    id: 'art_59',
+    number: 59,
+    title: 'Artwork 59',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_west',
+    hallName: 'West Gallery Corridor',
+    textureUrl: '/paintings/59.png'
+  },
+  {
+    id: 'art_60',
+    number: 60,
+    title: 'Artwork 60',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_west',
+    hallName: 'West Gallery Corridor',
+    textureUrl: '/paintings/60.png'
+  },
+  {
+    id: 'art_61',
+    number: 61,
+    title: 'Artwork 61',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_west',
+    hallName: 'West Gallery Corridor',
+    textureUrl: '/paintings/61.png'
+  },
+  {
+    id: 'art_62',
+    number: 62,
+    title: 'Artwork 62',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_west',
+    hallName: 'West Gallery Corridor',
+    textureUrl: '/paintings/62.png'
+  },
+  {
+    id: 'art_63',
+    number: 63,
+    title: 'Artwork 63',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_west',
+    hallName: 'West Gallery Corridor',
+    textureUrl: '/paintings/63.png'
+  },
+  {
+    id: 'art_64',
+    number: 64,
+    title: 'Artwork 64',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_east',
+    hallName: 'East Gallery Corridor',
+    textureUrl: '/paintings/64.png'
+  },
+  {
+    id: 'art_65',
+    number: 65,
+    title: 'Artwork 65',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_east',
+    hallName: 'East Gallery Corridor',
+    textureUrl: '/paintings/64.png'
+  },
+  {
+    id: 'art_66',
+    number: 66,
+    title: 'Artwork 66',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_east',
+    hallName: 'East Gallery Corridor',
+    textureUrl: '/paintings/66.png'
+  },
+  {
+    id: 'art_67',
+    number: 67,
+    title: 'Artwork 67',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_east',
+    hallName: 'East Gallery Corridor',
+    textureUrl: '/paintings/67.png'
+  },
+  {
+    id: 'art_68',
+    number: 68,
+    title: 'Artwork 68',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_east',
+    hallName: 'East Gallery Corridor',
+    textureUrl: '/paintings/68.png'
+  },
+  {
+    id: 'art_69',
+    number: 69,
+    title: 'Artwork 69',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_north',
+    hallName: 'State North Hallway',
+    textureUrl: '/paintings/69.png'
+  },
+  {
+    id: 'art_70',
+    number: 70,
+    title: 'Artwork 70',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_north',
+    hallName: 'State North Hallway',
+    textureUrl: '/paintings/70.png'
+  },
+  {
+    id: 'art_71',
+    number: 71,
+    title: 'Artwork 71',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_north',
+    hallName: 'State North Hallway',
+    textureUrl: '/paintings/71.png'
+  },
+  {
+    id: 'art_72',
+    number: 72,
+    title: 'Artwork 72',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'corridor_north',
+    hallName: 'State North Hallway',
+    textureUrl: '/paintings/72.png'
+  },
+  {
+    id: 'art_73',
+    number: 73,
+    title: 'Artwork 73',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'passage_final',
+    hallName: 'Grand Sovereign Corridor',
+    textureUrl: '/paintings/73.png'
+  },
+  {
+    id: 'art_74',
+    number: 74,
+    title: 'Artwork 74',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'passage_final',
+    hallName: 'Grand Sovereign Corridor',
+    textureUrl: '/paintings/74.png'
+  },
+  {
+    id: 'art_75',
+    number: 75,
+    title: 'Artwork 75',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'passage_final',
+    hallName: 'Grand Sovereign Corridor',
+    textureUrl: '/paintings/75.png'
+  },
+  {
+    id: 'art_76',
+    number: 76,
+    title: 'Artwork 76',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'passage_final',
+    hallName: 'Grand Sovereign Corridor',
+    textureUrl: '/paintings/76.png'
+  },
+  {
+    id: 'art_77',
+    number: 77,
+    title: 'Artwork 77',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'final_hall',
+    hallName: 'The Grand Sovereign Hall',
+    textureUrl: '/paintings/77.png'
+  },
+  {
+    id: 'art_78',
+    number: 78,
+    title: 'Artwork 78',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'final_hall',
+    hallName: 'The Grand Sovereign Hall',
+    textureUrl: '/paintings/78.png'
+  },
+  {
+    id: 'art_79',
+    number: 79,
+    title: 'Artwork 79',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'hall_01',
+    hallName: 'Hall 01: Classical Masterworks',
+    textureUrl: '/paintings/79.png'
+  },
+  {
+    id: 'art_80',
+    number: 80,
+    title: 'Artwork 80',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'hall_02',
+    hallName: 'Hall 02: Historic Heritage',
+    textureUrl: '/paintings/80.png'
+  },
+  {
+    id: 'art_81',
+    number: 81,
+    title: 'Artwork 81',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'hall_03',
+    hallName: 'Hall 03: Grand Luminary',
+    textureUrl: '/paintings/81.png'
+  },
+  {
+    id: 'art_82',
+    number: 82,
+    title: 'Artwork 82',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'hall_04',
+    hallName: 'Hall 04: Sovereign Heritage',
+    textureUrl: '/paintings/82.png'
+  },
+  {
+    id: 'art_83',
+    number: 83,
+    title: 'Artwork 83',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'hall_05',
+    hallName: 'Hall 05: Royal Masterpiece',
+    textureUrl: '/paintings/83.png'
+  },
+  {
+    id: 'art_84',
+    number: 84,
+    title: 'Artwork 84',
+    subTitle: undefined,
+    scripture: undefined,
+    passage: undefined,
+    description: undefined,
+    hallId: 'hall_06',
+    hallName: 'Hall 06: Imperial Dawn',
+    textureUrl: '/paintings/84.png'
   }
 ];
 
@@ -799,10 +1363,90 @@ export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   // SOVEREIGN CENTRAL ROTUNDA (Slots 45 - 48)
   // Center: [0, 0, 0], Size: [26, 8, 22], Bounds X: [-13, 13], Z: [-11, 11]
   // -----------------------------------------------------------------
-  { id: 'rotunda_slot_01', slotIndex: 45, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'West Wall Bay 1', pos: [-12.78, 2.6, 7.0], rotY: Math.PI / 2 },
-  { id: 'rotunda_slot_02', slotIndex: 46, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'West Wall Bay 2', pos: [-12.78, 2.6, -7.0], rotY: Math.PI / 2 },
-  { id: 'rotunda_slot_03', slotIndex: 47, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'East Wall Bay 1', pos: [12.78, 2.6, 7.0], rotY: -Math.PI / 2 },
-  { id: 'rotunda_slot_04', slotIndex: 48, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'East Wall Bay 2', pos: [12.78, 2.6, -7.0], rotY: -Math.PI / 2 }
+  { id: 'rotunda_slot_01', slotIndex: 45, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'West Wall Bay 1', pos: [-12.78, 2.6, 7.0], rotY: Math.PI / 2 },
+  { id: 'rotunda_slot_02', slotIndex: 46, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'West Wall Bay 2', pos: [-12.78, 2.6, -7.0], rotY: Math.PI / 2 },
+  { id: 'rotunda_slot_03', slotIndex: 47, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'East Wall Bay 1', pos: [12.78, 2.6, 7.0], rotY: -Math.PI / 2 },
+  { id: 'rotunda_slot_04', slotIndex: 48, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'East Wall Bay 2', pos: [12.78, 2.6, -7.0], rotY: -Math.PI / 2 },
+
+  // -----------------------------------------------------------------
+  // GROUP A: ROYAL PROCESSIONAL GALLERY (Slots 49 - 52)
+  // Hall: corridor_south, Center: [0, 0, 15], Size: [12, 6, 10]
+  // -----------------------------------------------------------------
+  { id: 'corridor_south_slot_01', slotIndex: 49, hallId: 'corridor_south', hallName: 'Royal Processional Gallery', wallDescription: 'West Wall South Bay', pos: [-5.78, 2.6, 17.5], rotY: Math.PI / 2 },
+  { id: 'corridor_south_slot_02', slotIndex: 50, hallId: 'corridor_south', hallName: 'Royal Processional Gallery', wallDescription: 'West Wall North Bay', pos: [-5.78, 2.6, 13.5], rotY: Math.PI / 2 },
+  { id: 'corridor_south_slot_03', slotIndex: 51, hallId: 'corridor_south', hallName: 'Royal Processional Gallery', wallDescription: 'East Wall South Bay', pos: [5.78, 2.6, 17.5], rotY: -Math.PI / 2 },
+  { id: 'corridor_south_slot_04', slotIndex: 52, hallId: 'corridor_south', hallName: 'Royal Processional Gallery', wallDescription: 'East Wall North Bay', pos: [5.78, 2.6, 13.5], rotY: -Math.PI / 2 },
+
+  // -----------------------------------------------------------------
+  // GROUP B: GRAND RECEPTION LOBBY (Slots 53 - 54)
+  // Hall: lobby, Center: [0, 0, 32], Size: [28, 7, 24]
+  // -----------------------------------------------------------------
+  { id: 'lobby_slot_01', slotIndex: 53, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'North Wall West Bay', pos: [-10.0, 2.6, 43.78], rotY: Math.PI },
+  { id: 'lobby_slot_02', slotIndex: 54, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'North Wall East Bay', pos: [10.0, 2.6, 43.78], rotY: Math.PI },
+
+  // -----------------------------------------------------------------
+  // GROUP C: SOVEREIGN CENTRAL ROTUNDA (Slots 55 - 58)
+  // Hall: rotunda, Center: [0, 0, 0], Size: [26, 8, 22]
+  // -----------------------------------------------------------------
+  { id: 'rotunda_slot_05', slotIndex: 55, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall West Bay', pos: [-8.0, 2.6, -10.78], rotY: Math.PI },
+  { id: 'rotunda_slot_06', slotIndex: 56, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall East Bay', pos: [8.0, 2.6, -10.78], rotY: Math.PI },
+  { id: 'rotunda_slot_07', slotIndex: 57, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall West Bay', pos: [-9.5, 2.6, 10.78], rotY: 0 },
+  { id: 'rotunda_slot_08', slotIndex: 58, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall East Bay', pos: [9.5, 2.6, 10.78], rotY: 0 },
+
+  // -----------------------------------------------------------------
+  // GROUP D: WEST GALLERY CORRIDOR (Slots 59 - 63)
+  // Hall: corridor_west, Center: [-15, 0, -2.5], Size: [4, 6, 45]
+  // -----------------------------------------------------------------
+  { id: 'corridor_west_slot_01', slotIndex: 59, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'North End Cap Wall', pos: [-16.5, 2.6, 19.78], rotY: Math.PI },
+  { id: 'corridor_west_slot_02', slotIndex: 60, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'South End Cap Wall', pos: [-16.5, 2.6, -24.78], rotY: 0 },
+  { id: 'corridor_west_slot_03', slotIndex: 61, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall North Bay', pos: [-13.22, 2.6, 15.5], rotY: -Math.PI / 2 },
+  { id: 'corridor_west_slot_04', slotIndex: 62, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall South Bay 1', pos: [-13.22, 2.6, -15.0], rotY: -Math.PI / 2 },
+  { id: 'corridor_west_slot_05', slotIndex: 63, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall South Bay 2', pos: [-13.22, 2.6, -21.0], rotY: -Math.PI / 2 },
+
+  // -----------------------------------------------------------------
+  // GROUP E: EAST GALLERY CORRIDOR (Slots 64 - 68)
+  // Hall: corridor_east, Center: [15, 0, -2.5], Size: [4, 6, 45]
+  // -----------------------------------------------------------------
+  { id: 'corridor_east_slot_01', slotIndex: 64, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'North End Cap Wall', pos: [16.5, 2.6, 19.78], rotY: Math.PI },
+  { id: 'corridor_east_slot_02', slotIndex: 65, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'South End Cap Wall', pos: [16.5, 2.6, -24.78], rotY: 0 },
+  { id: 'corridor_east_slot_03', slotIndex: 66, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall North Bay', pos: [13.22, 2.6, 15.5], rotY: Math.PI / 2 },
+  { id: 'corridor_east_slot_04', slotIndex: 67, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall South Bay 1', pos: [13.22, 2.6, -15.0], rotY: Math.PI / 2 },
+  { id: 'corridor_east_slot_05', slotIndex: 68, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall South Bay 2', pos: [13.22, 2.6, -21.0], rotY: Math.PI / 2 },
+
+  // -----------------------------------------------------------------
+  // GROUP F: STATE NORTH HALLWAY (Slots 69 - 72)
+  // Hall: corridor_north, Center: [0, 0, -20], Size: [12, 6, 18]
+  // -----------------------------------------------------------------
+  { id: 'corridor_north_slot_01', slotIndex: 69, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'West Wall South Bay', pos: [-5.78, 2.6, -13.5], rotY: Math.PI / 2 },
+  { id: 'corridor_north_slot_02', slotIndex: 70, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'West Wall North Bay', pos: [-5.78, 2.6, -26.5], rotY: Math.PI / 2 },
+  { id: 'corridor_north_slot_03', slotIndex: 71, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'East Wall South Bay', pos: [5.78, 2.6, -13.5], rotY: -Math.PI / 2 },
+  { id: 'corridor_north_slot_04', slotIndex: 72, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'East Wall North Bay', pos: [5.78, 2.6, -26.5], rotY: -Math.PI / 2 },
+
+  // -----------------------------------------------------------------
+  // GROUP G: GRAND SOVEREIGN CORRIDOR (Slots 73 - 76)
+  // Hall: passage_final, Center: [0, 0, -53], Size: [12, 6, 12]
+  // -----------------------------------------------------------------
+  { id: 'passage_final_slot_01', slotIndex: 73, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'West Wall South Bay', pos: [-5.78, 2.6, -56.0], rotY: Math.PI / 2 },
+  { id: 'passage_final_slot_02', slotIndex: 74, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'West Wall North Bay', pos: [-5.78, 2.6, -50.0], rotY: Math.PI / 2 },
+  { id: 'passage_final_slot_03', slotIndex: 75, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'East Wall South Bay', pos: [5.78, 2.6, -56.0], rotY: -Math.PI / 2 },
+  { id: 'passage_final_slot_04', slotIndex: 76, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'East Wall North Bay', pos: [5.78, 2.6, -50.0], rotY: -Math.PI / 2 },
+
+  // -----------------------------------------------------------------
+  // GROUP H: GRAND SOVEREIGN HALL / THRONE GALLERY (Slots 77 - 78)
+  // Hall: final_hall, Center: [0, 0, -68], Size: [24, 7, 18]
+  // -----------------------------------------------------------------
+  { id: 'final_hall_slot_07', slotIndex: 77, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'South Wall West Bay', pos: [-8.0, 2.6, -59.22], rotY: 0 },
+  { id: 'final_hall_slot_08', slotIndex: 78, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'South Wall East Bay', pos: [8.0, 2.6, -59.22], rotY: 0 },
+
+  // -----------------------------------------------------------------
+  // GROUP I: EXHIBITION HALL PORTAL RETURN WALL PIERS (Slots 79 - 84)
+  // -----------------------------------------------------------------
+  { id: 'hall_01_slot_07', slotIndex: 79, hallId: 'hall_01', hallName: 'Hall 01: Classical Masterworks', wallDescription: 'East Wall Return Pier', pos: [-20.22, 2.6, 17.0], rotY: -Math.PI / 2 },
+  { id: 'hall_02_slot_07', slotIndex: 80, hallId: 'hall_02', hallName: 'Hall 02: Historic Heritage', wallDescription: 'East Wall Return Pier', pos: [-20.22, 2.6, -8.0], rotY: -Math.PI / 2 },
+  { id: 'hall_03_slot_07', slotIndex: 81, hallId: 'hall_03', hallName: 'Hall 03: Grand Luminary', wallDescription: 'West Wall Return Pier', pos: [20.22, 2.6, 17.0], rotY: Math.PI / 2 },
+  { id: 'hall_04_slot_07', slotIndex: 82, hallId: 'hall_04', hallName: 'Hall 04: Sovereign Heritage', wallDescription: 'West Wall Return Pier', pos: [20.22, 2.6, -8.0], rotY: Math.PI / 2 },
+  { id: 'hall_05_slot_07', slotIndex: 83, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'East Wall Return Pier', pos: [-4.22, 2.6, -31.5], rotY: -Math.PI / 2 },
+  { id: 'hall_06_slot_07', slotIndex: 84, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'West Wall Return Pier', pos: [4.22, 2.6, -31.5], rotY: Math.PI / 2 }
 ];
 
 // =================================================================
@@ -815,30 +1459,16 @@ MANUAL_ARTWORKS.forEach(art => {
   }
 });
 
-const allNumbersSet = new Set<number>();
-MANUAL_ARTWORKS.forEach(art => {
-  if (art.number >= 1 && art.number <= MAX_ARTWORKS) {
-    allNumbersSet.add(art.number);
-  }
-});
-discoveredList.forEach(file => {
-  if (file.number >= 1 && file.number <= MAX_ARTWORKS) {
-    allNumbersSet.add(file.number);
-  }
-});
-
-const sortedNumbers = Array.from(allNumbersSet).sort((a, b) => a - b);
-
 const combinedArtworks: Artwork[] = [];
 
-for (const num of sortedNumbers) {
+for (let num = 1; num <= MAX_ARTWORKS; num++) {
   const manual = manualMap.get(num);
   const discovered = discoveredList.find(f => f.number === num);
   const numStr = String(num).padStart(2, '0');
   const defaultTextureUrl = discovered ? discovered.url : `/paintings/${numStr}.png`;
 
   if (manual) {
-    // Preserve 100% of manual theological metadata
+    // Preserve 100% of manual metadata
     combinedArtworks.push({
       ...manual,
       textureUrl: manual.textureUrl || defaultTextureUrl
@@ -883,8 +1513,8 @@ for (const art of FINAL_ARTWORKS) {
     art.slotId = targetSlot.id;
     art.position = targetSlot.pos;
     art.rotation = [0, targetSlot.rotY, 0];
-    if (!art.hallId) art.hallId = targetSlot.hallId;
-    if (!art.hallName) art.hallName = targetSlot.hallName;
+    art.hallId = targetSlot.hallId;
+    art.hallName = targetSlot.hallName;
   }
 }
 
@@ -897,8 +1527,8 @@ for (const art of FINAL_ARTWORKS) {
       art.slotId = freeSlot.id;
       art.position = freeSlot.pos;
       art.rotation = [0, freeSlot.rotY, 0];
-      if (!art.hallId) art.hallId = freeSlot.hallId;
-      if (!art.hallName) art.hallName = freeSlot.hallName;
+      art.hallId = freeSlot.hallId;
+      art.hallName = freeSlot.hallName;
     } else {
       // Physical capacity reached: Leave unmounted with NO fake coordinates
       art.slotId = undefined;
