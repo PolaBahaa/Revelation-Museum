@@ -1388,8 +1388,8 @@ export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   // GROUP C: SOVEREIGN CENTRAL ROTUNDA (Slots 55 - 58)
   // Hall: rotunda, Center: [0, 0, 0], Size: [26, 8, 22]
   // -----------------------------------------------------------------
-  { id: 'rotunda_slot_05', slotIndex: 55, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall West Bay', pos: [-8.0, 2.6, -10.78], rotY: 0 },
-  { id: 'rotunda_slot_06', slotIndex: 56, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall East Bay', pos: [8.0, 2.6, -10.78], rotY: 0 },
+  { id: 'rotunda_slot_05', slotIndex: 55, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall West Bay', pos: [-10.5, 2.6, -10.78], rotY: 0 },
+  { id: 'rotunda_slot_06', slotIndex: 56, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall East Bay', pos: [10.5, 2.6, -10.78], rotY: 0 },
   { id: 'rotunda_slot_07', slotIndex: 57, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall West Bay', pos: [-9.5, 2.6, 10.78], rotY: Math.PI },
   { id: 'rotunda_slot_08', slotIndex: 58, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall East Bay', pos: [9.5, 2.6, 10.78], rotY: Math.PI },
 

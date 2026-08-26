@@ -290,19 +290,14 @@ export const MapModal: React.FC<MapModalProps> = ({
               {hoveredArtwork ? (
                 <div className="space-y-1.5 animate-fadeIn">
                   <div className="flex items-center justify-between text-xs text-amber-400 font-mono">
-                    <span>EXHIBITION #{hoveredArtwork.number} (OF {MAX_ARTWORKS} CAPACITY)</span>
-                    <span className="text-zinc-400">{hoveredArtwork.hallName}</span>
+                    <span>ARTWORK #{String(hoveredArtwork.number).padStart(2, '0')}</span>
+                    <span className="text-zinc-400">{hoveredArtwork.hallName || 'Gallery Collection'}</span>
                   </div>
-                  <h4 className="text-sm font-serif font-bold text-amber-200">
-                    {hoveredArtwork.title}
+                  <h4 className="text-base font-serif font-bold text-amber-200">
+                    Artwork {String(hoveredArtwork.number).padStart(2, '0')}
                   </h4>
-                  {hoveredArtwork.subTitle && (
-                    <p className="text-xs text-zinc-300 italic font-serif">
-                      {hoveredArtwork.subTitle}
-                    </p>
-                  )}
-                  <p className="text-[11px] text-amber-300/80 font-mono">
-                    {hoveredArtwork.scripture}
+                  <p className="text-xs text-zinc-400 font-sans">
+                    Exhibition Piece • {hoveredArtwork.hallName || 'Gallery Collection'}
                   </p>
                   <button
                     onClick={() => {
@@ -314,9 +309,9 @@ export const MapModal: React.FC<MapModalProps> = ({
                         onClose();
                       }
                     }}
-                    className="mt-1 w-full py-1.5 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-zinc-950 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="mt-2 w-full py-1.5 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-zinc-950 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Navigation className="w-3.5 h-3.5" /> Travel to Artwork #{hoveredArtwork.number}
+                    <Navigation className="w-3.5 h-3.5" /> Navigate to Artwork #{String(hoveredArtwork.number).padStart(2, '0')}
                   </button>
                 </div>
               ) : (
@@ -341,7 +336,7 @@ export const MapModal: React.FC<MapModalProps> = ({
                   { id: 'hall_04', label: 'Hall 04', pos: [30, 1.7, -15], hallId: 'hall_04' },
                   { id: 'hall_05', label: 'Hall 05', pos: [-15, 1.7, -38], hallId: 'hall_05' },
                   { id: 'hall_06', label: 'Hall 06', pos: [15, 1.7, -38], hallId: 'hall_06' },
-                  { id: 'final_hall', label: 'Throne Gallery', pos: [0, 1.7, -68], hallId: 'final_hall' },
+                  { id: 'final_hall', label: 'Grand Sovereign Hall', pos: [0, 1.7, -68], hallId: 'final_hall' },
                   { id: 'rotunda', label: 'Central Rotunda', pos: [0, 1.7, 0], hallId: 'rotunda' },
                   { id: 'lobby', label: 'Grand Lobby', pos: [0, 1.7, 32], hallId: 'lobby' },
                 ].map((zone) => {
