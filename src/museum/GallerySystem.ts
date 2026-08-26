@@ -43,4 +43,8 @@ export class GallerySystem {
   public getArtworkCount(): number {
     return this.paintingManager.getArtworkCount();
   }
+
+  public getMaxArtworkNumber(): number {
+    return this.paintingManager.getMaxArtworkNumber();
+  }
 }

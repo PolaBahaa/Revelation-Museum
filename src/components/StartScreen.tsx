@@ -1,7 +1,6 @@
 import React from 'react';
 import { Compass, Eye, Move, Sparkles, Loader2 } from 'lucide-react';
 import { PrewarmState } from '../types';
-import { ALL_ARTWORKS } from '../museum/MuseumData';
 
 interface StartScreenProps {
   onEnter: () => void;
@@ -29,14 +28,10 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onEnter, prewarmState 
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 tracking-wider">
             PROPHETIA MUSEUM
           </h1>
-          <p className="text-amber-200/80 text-lg font-serif italic">
-            An Immersive Journey Through the Book of Revelation
-          </p>
         </div>
 
         <p className="text-zinc-300 text-sm max-w-xl mx-auto leading-relaxed font-sans">
-          Welcome to Prophetia Museum, a 3D WebGL classical sanctuary inspired by European royal architecture.
-          Explore {ALL_ARTWORKS.length} sacred masterworks across magnificent exhibition halls with full first-person navigation.
+          A 3D Gallery Museum designed as an innovative visual aid for immersive presentation, exploration, and interactive exhibition.
         </p>
 
         {/* Controls Grid */}
@@ -113,8 +108,8 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onEnter, prewarmState 
         </div>
 
         {/* Copyright Notice */}
-        <div className="pt-2 border-t border-zinc-800/80 text-[11px] text-zinc-500 font-sans tracking-wide">
-          © 2026 Pola Bahaa. All Rights Reserved.
+        <div className="pt-3 border-t border-zinc-800 text-xs text-zinc-400 font-sans tracking-wide">
+          © 2026 <span className="text-amber-400 font-semibold tracking-wider">Pola Bahaa</span>. All Rights Reserved.
         </div>
 
       </div>

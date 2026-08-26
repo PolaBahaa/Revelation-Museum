@@ -224,7 +224,7 @@ export class DiagnosticProfiler {
     );
   }
 
-  public recordPrewarmComplete(totalArtworks: number = 36): void {
+  public recordPrewarmComplete(totalArtworks: number): void {
     this.prewarmCompleteTime = performance.now();
     const totalDuration = this.prewarmCompleteTime - this.prewarmStartTime;
     

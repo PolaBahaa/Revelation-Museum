@@ -3,7 +3,7 @@ import { MuseumScene } from './museum/MuseumScene';
 import { StartScreen } from './components/StartScreen';
 import { MapModal } from './components/MapModal';
 import { PlayerState, Artwork, PrewarmState } from './types';
-import { ALL_ARTWORKS } from './museum/MuseumData';
+import { FINAL_ARTWORKS } from './museum/MuseumData';
 
 interface InspectPresentationProps {
   artwork: Artwork;
@@ -26,7 +26,7 @@ function InspectPresentation({ artwork, onClose }: InspectPresentationProps) {
   };
 
   const numStr = String(artwork.number).padStart(2, '0');
-  const imagePath = `/paintings/${numStr}.png`;
+  const imagePath = artwork.textureUrl || `/paintings/${numStr}.png`;
 
   return (
     <div
@@ -57,7 +57,7 @@ export default function App() {
   const [playerState, setPlayerState] = useState<PlayerState | null>(null);
   const [prewarmState, setPrewarmState] = useState<PrewarmState>({
     loaded: 0,
-    total: ALL_ARTWORKS.length,
+    total: FINAL_ARTWORKS.length,
     isComplete: false,
     statusMessage: 'Preparing Exhibition...'
   });

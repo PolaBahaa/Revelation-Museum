@@ -202,6 +202,14 @@ export class PlayerController {
       return;
     }
 
+    // [Enter] or [NumpadEnter] key -> Commit buffered artwork navigation immediately
+    if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.key === 'Enter') {
+      if (this.numBuffer.length > 0) {
+        this.processNumBuffer();
+        return;
+      }
+    }
+
     // Numeric keys (0 - 9) -> Artwork Number Navigation
     if (/^[0-9]$/.test(e.key)) {
       this.handleDigitKey(e.key);
@@ -287,7 +295,7 @@ export class PlayerController {
   }
 
   /**
-   * Handles digit key input buffer with 700ms timeout
+   * Handles digit key input buffer with dynamic max digit limit & debounce timeout
    */
   private handleDigitKey(digit: string): void {
     this.numBuffer += digit;
@@ -297,12 +305,17 @@ export class PlayerController {
       this.numTimer = null;
     }
 
-    if (this.numBuffer.length >= 2) {
+    const maxArtNum = this.gallerySystem.getMaxArtworkNumber();
+    const maxDigits = Math.max(1, maxArtNum.toString().length);
+
+    // If buffered string reaches the max digit count across all artworks, process immediately
+    if (this.numBuffer.length >= maxDigits) {
       this.processNumBuffer();
     } else {
+      // Otherwise debounce to allow typing multi-digit IDs naturally
       this.numTimer = setTimeout(() => {
         this.processNumBuffer();
-      }, 700);
+      }, 650);
     }
   }
 
@@ -315,12 +328,14 @@ export class PlayerController {
       this.numTimer = null;
     }
 
-    if (isNaN(num) || num < 1) {
+    const maxArtNum = this.gallerySystem.getMaxArtworkNumber();
+    if (isNaN(num) || num < 1 || num > maxArtNum) {
       return;
     }
 
+    // Strict data resolution: Only navigate if the artwork actually exists in canonical collection with valid slot position
     const artwork = this.gallerySystem.getArtworkByNumber(num);
-    if (artwork) {
+    if (artwork && artwork.position) {
       this.navigateToArtwork(artwork);
     }
   }
@@ -536,7 +551,7 @@ export class PlayerController {
         hallName = 'Central Rotunda';
       } else if (this.position.z < -52) {
         hallId = 'final_hall';
-        hallName = 'Final Revelation Gallery';
+        hallName = 'The Grand Sovereign Hall';
       }
 
       this.lastHallId = hallId;

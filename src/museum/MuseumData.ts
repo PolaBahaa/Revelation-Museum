@@ -1,13 +1,98 @@
-import { Hall, Artwork } from '../types';
+/// <reference types="vite/client" />
+import { Hall, Artwork, WallSlot } from '../types';
+import rawDiscoveredPaintings from './discoveredPaintings.json';
+
+export type { WallSlot };
+
+/**
+ * CANONICAL MUSEUM CAPACITY: Exactly 48 real, valid physical wall display slots.
+ * Derived from the verified architectural audit (Slots 1-42 + 47-48/Rotunda; invalid niches 43-46 pruned).
+ */
+export const MAX_ARTWORKS = 48;
+
+export interface DiscoveredPaintingFile {
+  filename: string;
+  number: number;
+  url: string;
+}
+
+// 1. Static/compiled manifest from discoveredPaintings.json (clamped to MAX_ARTWORKS)
+const rawList = (rawDiscoveredPaintings as DiscoveredPaintingFile[]).filter(
+  d => d.number >= 1 && d.number <= MAX_ARTWORKS
+);
+const discoveredList: DiscoveredPaintingFile[] = [...rawList];
+
+// 2. Vite compile-time discovery fallback scanning /public/paintings/ and relative paths
+const globFiles1: Record<string, unknown> = typeof import.meta.glob === 'function'
+  ? import.meta.glob<{ default: string }>(
+      ['/public/paintings/*.png', '/public/paintings/*.PNG', '/public/paintings/*.jpg', '/public/paintings/*.jpeg', '/public/paintings/*.webp'],
+      { eager: true }
+    )
+  : {};
+
+const globFiles2: Record<string, unknown> = typeof import.meta.glob === 'function'
+  ? import.meta.glob<{ default: string }>(
+      ['../../public/paintings/*.png', '../../public/paintings/*.PNG', '../../public/paintings/*.jpg', '../../public/paintings/*.jpeg', '../../public/paintings/*.webp'],
+      { eager: true }
+    )
+  : {};
+
+const allGlobKeys = [...Object.keys(globFiles1), ...Object.keys(globFiles2)];
+
+for (const key of allGlobKeys) {
+  const filename = key.split('/').pop() || '';
+  const match = filename.match(/^0*(\d+)\.(png|PNG|jpg|jpeg|webp)$/i);
+  if (match) {
+    const num = parseInt(match[1], 10);
+    if (!isNaN(num) && num > 0 && num <= MAX_ARTWORKS && !discoveredList.some(d => d.number === num)) {
+      discoveredList.push({
+        filename,
+        number: num,
+        url: `/paintings/${filename}`
+      });
+    }
+  }
+}
+
+// 3. Direct Node.js runtime fallback if running in a Node / test / script environment
+if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require('fs');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require('path');
+    const paintingsDir = path.resolve(process.cwd(), 'public/paintings');
+    if (fs.existsSync(paintingsDir)) {
+      const files: string[] = fs.readdirSync(paintingsDir);
+      for (const file of files) {
+        const match = file.match(/^0*(\d+)\.(png|PNG|jpg|jpeg|webp)$/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > 0 && num <= MAX_ARTWORKS && !discoveredList.some(d => d.number === num)) {
+            discoveredList.push({
+              filename: file,
+              number: num,
+              url: `/paintings/${file}`
+            });
+          }
+        }
+      }
+    }
+  } catch {
+    // sandboxed or browser environment
+  }
+}
+
+discoveredList.sort((a, b) => a.number - b.number);
 
 export const MUSEUM_HALLS: Hall[] = [
   {
     id: 'hall_01',
     code: 'Hall 01',
-    title: 'The Seven Seals',
-    subTitle: 'The Scroll of Revelation & Heavenly Worship',
-    theme: 'Proclamation & Divine Sovereignty',
-    description: 'Exhibiting the dramatic visions of Revelation chapters 1 through 6: The Vision of the Glorified Son of Man, the Throne Room of Heaven, and the Opening of the Seven Seals.',
+    title: 'Classical Masterworks Gallery',
+    subTitle: 'First Exhibition Wing',
+    theme: 'Classical Masterworks & Illumination',
+    description: 'A distinguished gallery presenting illuminated fine art masterworks and classical compositions.',
     center: [-30, 0, 10],
     size: [20, 6, 20],
     artworks: [] // Populated below
@@ -15,10 +100,10 @@ export const MUSEUM_HALLS: Hall[] = [
   {
     id: 'hall_02',
     code: 'Hall 02',
-    title: 'The Seven Trumpets',
-    subTitle: 'Cosmic Warnings & The Angelic Censer',
-    theme: 'Judgement & Warning',
-    description: 'Exploring Revelation chapters 7 through 11: The Sealing of the 144,000, the Golden Censer at the Altar, the Blare of the Seven Trumpets, and the Two Witnesses.',
+    title: 'Historic Heritage Gallery',
+    subTitle: 'Second Exhibition Wing',
+    theme: 'Historic Narratives & Fine Arts',
+    description: 'Featuring dramatic thematic collections and historic narrative visual art.',
     center: [-30, 0, -15],
     size: [20, 6, 20],
     artworks: []
@@ -26,10 +111,10 @@ export const MUSEUM_HALLS: Hall[] = [
   {
     id: 'hall_03',
     code: 'Hall 03',
-    title: 'The Heavenly Vision',
-    subTitle: 'The Woman Clothed with the Sun & The War in Heaven',
-    theme: 'Cosmic Conflict & Victory',
-    description: 'Dedicated to Revelation chapters 12 through 14: The Woman Clothed with the Sun, Michael Casting Down the Dragon, and the Lamb on Mount Zion.',
+    title: 'Grand Luminary Gallery',
+    subTitle: 'Third Exhibition Wing',
+    theme: 'Luminous Compositions & Celestial Light',
+    description: 'Dedicated to luminous masterworks and celestial aesthetic compositions.',
     center: [30, 0, 10],
     size: [20, 6, 20],
     artworks: []
@@ -37,10 +122,10 @@ export const MUSEUM_HALLS: Hall[] = [
   {
     id: 'hall_04',
     code: 'Hall 04',
-    title: 'The Seven Bowls',
-    subTitle: 'The Wrath of God & The Fall of Babylon',
-    theme: 'Righteous Judgment & Redemption',
-    description: 'Displaying Revelation chapters 15 through 18: The Sea of Glass, the Seven Golden Bowls poured upon the earth, and the Collapse of Babylon.',
+    title: 'Sovereign Heritage Gallery',
+    subTitle: 'Fourth Exhibition Wing',
+    theme: 'Expressive Studies & Grand Contrast',
+    description: 'Displaying expressive fine art pieces and high-contrast dramatic visual studies.',
     center: [30, 0, -15],
     size: [20, 6, 20],
     artworks: []
@@ -48,10 +133,10 @@ export const MUSEUM_HALLS: Hall[] = [
   {
     id: 'hall_05',
     code: 'Hall 05',
-    title: 'The Final Victory',
-    subTitle: 'The Marriage Supper & The Rider on the White Horse',
-    theme: 'Triumph of the King',
-    description: 'Showcasing Revelation chapters 19 and 20: The Heavenly Hallelujah Chorus, the Marriage Supper of the Lamb, the Rider Named Faithful and True, and the Great White Throne.',
+    title: 'Royal Masterpiece Gallery',
+    subTitle: 'Fifth Exhibition Wing',
+    theme: 'Monumental Fine Art & Triumph',
+    description: 'Showcasing grand monumental compositions and historic fine art collections.',
     center: [-15, 0, -38],
     size: [22, 6, 20],
     artworks: []
@@ -59,17 +144,28 @@ export const MUSEUM_HALLS: Hall[] = [
   {
     id: 'hall_06',
     code: 'Hall 06',
-    title: 'The New Jerusalem',
-    subTitle: 'The Holy City, River of Life & Eternal Renewal',
-    theme: 'Eternal Glory & Hope',
-    description: 'Immersing visitors in Revelation chapters 21 and 22: The New Heaven and New Earth, the Descending Holy City of Gold, the River of the Water of Life, and the Tree of Life.',
+    title: 'Imperial Dawn Gallery',
+    subTitle: 'Sixth Exhibition Wing',
+    theme: 'Architectural Splendor & Radiance',
+    description: 'Immersing visitors in illuminated architectural perspectives and golden radiance fine art.',
     center: [15, 0, -38],
     size: [22, 6, 20],
+    artworks: []
+  },
+  {
+    id: 'final_hall',
+    code: 'Throne Hall',
+    title: 'The Grand Sovereign Hall',
+    subTitle: 'Culmination Gallery of Eternity',
+    theme: 'Everlasting Sovereignty & Grandeur',
+    description: 'The supreme sanctuary at the northern culmination of the palace, enshrining majestic fine art masterworks.',
+    center: [0, 0, -68],
+    size: [24, 7, 18],
     artworks: []
   }
 ];
 
-export const ALL_ARTWORKS: Artwork[] = [
+const MANUAL_ARTWORKS: Artwork[] = [
   // ==========================================
   // HALL 01: THE SEVEN SEALS (Artworks 1 to 6)
   // ==========================================
@@ -596,139 +692,268 @@ export const ALL_ARTWORKS: Artwork[] = [
     canvasColorPrimary: '#166534',
     canvasColorSecondary: '#fef08a',
     symbolism: 'Tree of Life, Healing Leaves, Eternal Light'
+  },
+  {
+    id: 'art_37',
+    number: 37,
+    title: 'The Sovereign Throne of Eternity',
+    subTitle: 'The Sovereign Alpha and Omega in Unapproachable Light',
+    scripture: 'Revelation 20:11; 21:5-6',
+    passage: 'Then I saw a great white throne and him who was seated on it. The earth and the heavens fled from his presence... He who was seated on the throne said, "I am making everything new! I am the Alpha and the Omega, the Beginning and the End."',
+    description: 'The monumental culmination masterpiece in the Final Throne Gallery: The eternal throne surrounded by celestial radiance and the renewal of all creation.',
+    hallId: 'final_hall',
+    hallName: 'Final Revelation Throne Gallery',
+    canvasColorPrimary: '#4a044e',
+    canvasColorSecondary: '#fde047',
+    symbolism: 'White Throne, Alpha and Omega, Celestial Splendor'
   }
 ];
-
-// Populate hall artworks array
-MUSEUM_HALLS.forEach(hall => {
-  hall.artworks = ALL_ARTWORKS.filter(art => art.hallId === hall.id);
-});
-
-export interface WallSlot {
-  artworkNumber: number;
-  pos: [number, number, number];
-  rotY: number;
-  hallId?: string;
-}
 
 export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   // -----------------------------------------------------------------
-  // HALL 01: THE SEVEN SEALS (Artworks 01 - 06)
+  // HALL 01: CLASSICAL MASTERWORKS (Slots 1 - 6)
   // Bounds X: [-40, -20], Z: [0, 20]
   // -----------------------------------------------------------------
-  { artworkNumber: 1, pos: [-34.0, 2.6, 0.22], rotY: 0, hallId: 'hall_01' },           // North Wall Bay 1
-  { artworkNumber: 2, pos: [-26.0, 2.6, 0.22], rotY: 0, hallId: 'hall_01' },           // North Wall Bay 2
-  { artworkNumber: 3, pos: [-34.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_01' },    // South Wall Bay 1
-  { artworkNumber: 4, pos: [-26.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_01' },    // South Wall Bay 2
-  { artworkNumber: 5, pos: [-39.78, 2.6, 6.0], rotY: Math.PI / 2, hallId: 'hall_01' },  // West Wall Bay 1
-  { artworkNumber: 6, pos: [-39.78, 2.6, 14.0], rotY: Math.PI / 2, hallId: 'hall_01' }, // West Wall Bay 2
+  { id: 'hall_01_slot_01', slotIndex: 1, hallId: 'hall_01', hallName: 'Hall 01: Classical Masterworks', wallDescription: 'North Wall Bay 1', pos: [-34.0, 2.6, 0.22], rotY: 0 },
+  { id: 'hall_01_slot_02', slotIndex: 2, hallId: 'hall_01', hallName: 'Hall 01: Classical Masterworks', wallDescription: 'North Wall Bay 2', pos: [-26.0, 2.6, 0.22], rotY: 0 },
+  { id: 'hall_01_slot_03', slotIndex: 3, hallId: 'hall_01', hallName: 'Hall 01: Classical Masterworks', wallDescription: 'South Wall Bay 1', pos: [-34.0, 2.6, 19.78], rotY: Math.PI },
+  { id: 'hall_01_slot_04', slotIndex: 4, hallId: 'hall_01', hallName: 'Hall 01: Classical Masterworks', wallDescription: 'South Wall Bay 2', pos: [-26.0, 2.6, 19.78], rotY: Math.PI },
+  { id: 'hall_01_slot_05', slotIndex: 5, hallId: 'hall_01', hallName: 'Hall 01: Classical Masterworks', wallDescription: 'West Wall Bay 1', pos: [-39.78, 2.6, 6.0], rotY: Math.PI / 2 },
+  { id: 'hall_01_slot_06', slotIndex: 6, hallId: 'hall_01', hallName: 'Hall 01: Classical Masterworks', wallDescription: 'West Wall Bay 2', pos: [-39.78, 2.6, 14.0], rotY: Math.PI / 2 },
 
   // -----------------------------------------------------------------
-  // HALL 02: THE SEVEN TRUMPETS (Artworks 07 - 12)
+  // HALL 02: HISTORIC HERITAGE (Slots 7 - 12)
   // Bounds X: [-40, -20], Z: [-25, -5]
   // -----------------------------------------------------------------
-  { artworkNumber: 7, pos: [-34.0, 2.6, -24.78], rotY: 0, hallId: 'hall_02' },          // North Wall Bay 1
-  { artworkNumber: 8, pos: [-26.0, 2.6, -24.78], rotY: 0, hallId: 'hall_02' },          // North Wall Bay 2
-  { artworkNumber: 9, pos: [-34.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_02' },     // South Wall Bay 1
-  { artworkNumber: 10, pos: [-26.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_02' },    // South Wall Bay 2
-  { artworkNumber: 11, pos: [-39.78, 2.6, -19.0], rotY: Math.PI / 2, hallId: 'hall_02' },// West Wall Bay 1
-  { artworkNumber: 12, pos: [-39.78, 2.6, -11.0], rotY: Math.PI / 2, hallId: 'hall_02' },// West Wall Bay 2
+  { id: 'hall_02_slot_01', slotIndex: 7, hallId: 'hall_02', hallName: 'Hall 02: Historic Heritage', wallDescription: 'North Wall Bay 1', pos: [-34.0, 2.6, -24.78], rotY: 0 },
+  { id: 'hall_02_slot_02', slotIndex: 8, hallId: 'hall_02', hallName: 'Hall 02: Historic Heritage', wallDescription: 'North Wall Bay 2', pos: [-26.0, 2.6, -24.78], rotY: 0 },
+  { id: 'hall_02_slot_03', slotIndex: 9, hallId: 'hall_02', hallName: 'Hall 02: Historic Heritage', wallDescription: 'South Wall Bay 1', pos: [-34.0, 2.6, -5.22], rotY: Math.PI },
+  { id: 'hall_02_slot_04', slotIndex: 10, hallId: 'hall_02', hallName: 'Hall 02: Historic Heritage', wallDescription: 'South Wall Bay 2', pos: [-26.0, 2.6, -5.22], rotY: Math.PI },
+  { id: 'hall_02_slot_05', slotIndex: 11, hallId: 'hall_02', hallName: 'Hall 02: Historic Heritage', wallDescription: 'West Wall Bay 1', pos: [-39.78, 2.6, -19.0], rotY: Math.PI / 2 },
+  { id: 'hall_02_slot_06', slotIndex: 12, hallId: 'hall_02', hallName: 'Hall 02: Historic Heritage', wallDescription: 'West Wall Bay 2', pos: [-39.78, 2.6, -11.0], rotY: Math.PI / 2 },
 
   // -----------------------------------------------------------------
-  // HALL 03: THE HEAVENLY VISION (Artworks 13 - 18)
+  // HALL 03: GRAND LUMINARY (Slots 13 - 18)
   // Bounds X: [20, 40], Z: [0, 20]
   // -----------------------------------------------------------------
-  { artworkNumber: 13, pos: [26.0, 2.6, 0.22], rotY: 0, hallId: 'hall_03' },           // North Wall Bay 1
-  { artworkNumber: 14, pos: [34.0, 2.6, 0.22], rotY: 0, hallId: 'hall_03' },           // North Wall Bay 2
-  { artworkNumber: 15, pos: [26.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_03' },    // South Wall Bay 1
-  { artworkNumber: 16, pos: [34.0, 2.6, 19.78], rotY: Math.PI, hallId: 'hall_03' },    // South Wall Bay 2
-  { artworkNumber: 17, pos: [39.78, 2.6, 6.0], rotY: -Math.PI / 2, hallId: 'hall_03' }, // East Wall Bay 1
-  { artworkNumber: 18, pos: [39.78, 2.6, 14.0], rotY: -Math.PI / 2, hallId: 'hall_03' },// East Wall Bay 2
+  { id: 'hall_03_slot_01', slotIndex: 13, hallId: 'hall_03', hallName: 'Hall 03: Grand Luminary', wallDescription: 'North Wall Bay 1', pos: [26.0, 2.6, 0.22], rotY: 0 },
+  { id: 'hall_03_slot_02', slotIndex: 14, hallId: 'hall_03', hallName: 'Hall 03: Grand Luminary', wallDescription: 'North Wall Bay 2', pos: [34.0, 2.6, 0.22], rotY: 0 },
+  { id: 'hall_03_slot_03', slotIndex: 15, hallId: 'hall_03', hallName: 'Hall 03: Grand Luminary', wallDescription: 'South Wall Bay 1', pos: [26.0, 2.6, 19.78], rotY: Math.PI },
+  { id: 'hall_03_slot_04', slotIndex: 16, hallId: 'hall_03', hallName: 'Hall 03: Grand Luminary', wallDescription: 'South Wall Bay 2', pos: [34.0, 2.6, 19.78], rotY: Math.PI },
+  { id: 'hall_03_slot_05', slotIndex: 17, hallId: 'hall_03', hallName: 'Hall 03: Grand Luminary', wallDescription: 'East Wall Bay 1', pos: [39.78, 2.6, 6.0], rotY: -Math.PI / 2 },
+  { id: 'hall_03_slot_06', slotIndex: 18, hallId: 'hall_03', hallName: 'Hall 03: Grand Luminary', wallDescription: 'East Wall Bay 2', pos: [39.78, 2.6, 14.0], rotY: -Math.PI / 2 },
 
   // -----------------------------------------------------------------
-  // HALL 04: THE SEVEN BOWLS (Artworks 19 - 24)
+  // HALL 04: SOVEREIGN HERITAGE (Slots 19 - 24)
   // Bounds X: [20, 40], Z: [-25, -5]
   // -----------------------------------------------------------------
-  { artworkNumber: 19, pos: [26.0, 2.6, -24.78], rotY: 0, hallId: 'hall_04' },         // North Wall Bay 1
-  { artworkNumber: 20, pos: [34.0, 2.6, -24.78], rotY: 0, hallId: 'hall_04' },         // North Wall Bay 2
-  { artworkNumber: 21, pos: [26.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_04' },    // South Wall Bay 1
-  { artworkNumber: 22, pos: [34.0, 2.6, -5.22], rotY: Math.PI, hallId: 'hall_04' },    // South Wall Bay 2
-  { artworkNumber: 23, pos: [39.78, 2.6, -19.0], rotY: -Math.PI / 2, hallId: 'hall_04' },// East Wall Bay 1
-  { artworkNumber: 24, pos: [39.78, 2.6, -11.0], rotY: -Math.PI / 2, hallId: 'hall_04' },// East Wall Bay 2
+  { id: 'hall_04_slot_01', slotIndex: 19, hallId: 'hall_04', hallName: 'Hall 04: Sovereign Heritage', wallDescription: 'North Wall Bay 1', pos: [26.0, 2.6, -24.78], rotY: 0 },
+  { id: 'hall_04_slot_02', slotIndex: 20, hallId: 'hall_04', hallName: 'Hall 04: Sovereign Heritage', wallDescription: 'North Wall Bay 2', pos: [34.0, 2.6, -24.78], rotY: 0 },
+  { id: 'hall_04_slot_03', slotIndex: 21, hallId: 'hall_04', hallName: 'Hall 04: Sovereign Heritage', wallDescription: 'South Wall Bay 1', pos: [26.0, 2.6, -5.22], rotY: Math.PI },
+  { id: 'hall_04_slot_04', slotIndex: 22, hallId: 'hall_04', hallName: 'Hall 04: Sovereign Heritage', wallDescription: 'South Wall Bay 2', pos: [34.0, 2.6, -5.22], rotY: Math.PI },
+  { id: 'hall_04_slot_05', slotIndex: 23, hallId: 'hall_04', hallName: 'Hall 04: Sovereign Heritage', wallDescription: 'East Wall Bay 1', pos: [39.78, 2.6, -19.0], rotY: -Math.PI / 2 },
+  { id: 'hall_04_slot_06', slotIndex: 24, hallId: 'hall_04', hallName: 'Hall 04: Sovereign Heritage', wallDescription: 'East Wall Bay 2', pos: [39.78, 2.6, -11.0], rotY: -Math.PI / 2 },
 
   // -----------------------------------------------------------------
-  // HALL 05: THE FINAL VICTORY (Artworks 25 - 30)
-  // Bounds X: [-26, -4], Z: [-47, -29] | North wall Z: -47, South wall Z: -29
+  // HALL 05: ROYAL MASTERPIECE (Slots 25 - 30)
+  // Bounds X: [-26, -4], Z: [-47, -29]
   // -----------------------------------------------------------------
-  { artworkNumber: 25, pos: [-20.5, 2.6, -46.78], rotY: 0, hallId: 'hall_05' },        // North Wall Bay 1
-  { artworkNumber: 26, pos: [-9.5, 2.6, -46.78], rotY: 0, hallId: 'hall_05' },         // North Wall Bay 2
-  { artworkNumber: 27, pos: [-20.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_05' },  // South Wall Bay 1
-  { artworkNumber: 28, pos: [-9.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_05' },   // South Wall Bay 2
-  { artworkNumber: 29, pos: [-25.78, 2.6, -42.0], rotY: Math.PI / 2, hallId: 'hall_05' },// West Wall Bay 1
-  { artworkNumber: 30, pos: [-25.78, 2.6, -34.0], rotY: Math.PI / 2, hallId: 'hall_05' },// West Wall Bay 2
+  { id: 'hall_05_slot_01', slotIndex: 25, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'North Wall Bay 1', pos: [-20.5, 2.6, -46.78], rotY: 0 },
+  { id: 'hall_05_slot_02', slotIndex: 26, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'North Wall Bay 2', pos: [-9.5, 2.6, -46.78], rotY: 0 },
+  { id: 'hall_05_slot_03', slotIndex: 27, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'South Wall Bay 1', pos: [-20.5, 2.6, -29.22], rotY: Math.PI },
+  { id: 'hall_05_slot_04', slotIndex: 28, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'South Wall Bay 2', pos: [-9.5, 2.6, -29.22], rotY: Math.PI },
+  { id: 'hall_05_slot_05', slotIndex: 29, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'West Wall Bay 1', pos: [-25.78, 2.6, -42.0], rotY: Math.PI / 2 },
+  { id: 'hall_05_slot_06', slotIndex: 30, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'West Wall Bay 2', pos: [-25.78, 2.6, -34.0], rotY: Math.PI / 2 },
 
   // -----------------------------------------------------------------
-  // HALL 06: THE NEW JERUSALEM (Artworks 31 - 36)
-  // Bounds X: [4, 26], Z: [-47, -29] | North wall Z: -47, South wall Z: -29
+  // HALL 06: IMPERIAL DAWN (Slots 31 - 36)
+  // Bounds X: [4, 26], Z: [-47, -29]
   // -----------------------------------------------------------------
-  { artworkNumber: 31, pos: [9.5, 2.6, -46.78], rotY: 0, hallId: 'hall_06' },          // North Wall Bay 1
-  { artworkNumber: 32, pos: [20.5, 2.6, -46.78], rotY: 0, hallId: 'hall_06' },         // North Wall Bay 2
-  { artworkNumber: 33, pos: [9.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_06' },    // South Wall Bay 1
-  { artworkNumber: 34, pos: [20.5, 2.6, -29.22], rotY: Math.PI, hallId: 'hall_06' },   // South Wall Bay 2
-  { artworkNumber: 35, pos: [25.78, 2.6, -42.0], rotY: -Math.PI / 2, hallId: 'hall_06' },// East Wall Bay 1
-  { artworkNumber: 36, pos: [25.78, 2.6, -34.0], rotY: -Math.PI / 2, hallId: 'hall_06' },// East Wall Bay 2
+  { id: 'hall_06_slot_01', slotIndex: 31, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'North Wall Bay 1', pos: [9.5, 2.6, -46.78], rotY: 0 },
+  { id: 'hall_06_slot_02', slotIndex: 32, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'North Wall Bay 2', pos: [20.5, 2.6, -46.78], rotY: 0 },
+  { id: 'hall_06_slot_03', slotIndex: 33, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'South Wall Bay 1', pos: [9.5, 2.6, -29.22], rotY: Math.PI },
+  { id: 'hall_06_slot_04', slotIndex: 34, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'South Wall Bay 2', pos: [20.5, 2.6, -29.22], rotY: Math.PI },
+  { id: 'hall_06_slot_05', slotIndex: 35, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'East Wall Bay 1', pos: [25.78, 2.6, -42.0], rotY: -Math.PI / 2 },
+  { id: 'hall_06_slot_06', slotIndex: 36, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'East Wall Bay 2', pos: [25.78, 2.6, -34.0], rotY: -Math.PI / 2 },
 
   // -----------------------------------------------------------------
-  // EXTENDED PALACE WALL SLOTS (For Artworks 37+)
+  // THE GRAND SOVEREIGN HALL (Slots 37 - 42)
+  // Center: [0, 0, -68], Size: [24, 7, 18], Bounds X: [-12, 12], Z: [-77, -59]
   // -----------------------------------------------------------------
-  // Final Revelation Throne Gallery (Center: [0, 0, -68], Size: [24, 7, 18], X: -12..12, Z: -77..-59)
-  { artworkNumber: 37, pos: [-11.78, 2.6, -72.0], rotY: Math.PI / 2, hallId: 'final_hall' },
-  { artworkNumber: 38, pos: [-11.78, 2.6, -64.0], rotY: Math.PI / 2, hallId: 'final_hall' },
-  { artworkNumber: 39, pos: [11.78, 2.6, -72.0], rotY: -Math.PI / 2, hallId: 'final_hall' },
-  { artworkNumber: 40, pos: [11.78, 2.6, -64.0], rotY: -Math.PI / 2, hallId: 'final_hall' },
-  { artworkNumber: 41, pos: [-7.0, 2.6, -76.78], rotY: 0, hallId: 'final_hall' },
-  { artworkNumber: 42, pos: [7.0, 2.6, -76.78], rotY: 0, hallId: 'final_hall' },
+  { id: 'final_hall_slot_01', slotIndex: 37, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'West Wall Bay 1', pos: [-11.78, 2.6, -72.0], rotY: Math.PI / 2 },
+  { id: 'final_hall_slot_02', slotIndex: 38, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'West Wall Bay 2', pos: [-11.78, 2.6, -64.0], rotY: Math.PI / 2 },
+  { id: 'final_hall_slot_03', slotIndex: 39, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'East Wall Bay 1', pos: [11.78, 2.6, -72.0], rotY: -Math.PI / 2 },
+  { id: 'final_hall_slot_04', slotIndex: 40, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'East Wall Bay 2', pos: [11.78, 2.6, -64.0], rotY: -Math.PI / 2 },
+  { id: 'final_hall_slot_05', slotIndex: 41, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'North Wall Bay 1', pos: [-7.0, 2.6, -76.78], rotY: 0 },
+  { id: 'final_hall_slot_06', slotIndex: 42, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'North Wall Bay 2', pos: [7.0, 2.6, -76.78], rotY: 0 },
 
-  // Grand Reception Lobby (Center: [0, 0, 32], Size: [24, 7.5, 24], X: -12..12, Z: 20..44)
-  { artworkNumber: 43, pos: [-11.78, 2.6, 26.0], rotY: Math.PI / 2, hallId: 'lobby' },
-  { artworkNumber: 44, pos: [-11.78, 2.6, 38.0], rotY: Math.PI / 2, hallId: 'lobby' },
-  { artworkNumber: 45, pos: [11.78, 2.6, 26.0], rotY: -Math.PI / 2, hallId: 'lobby' },
-  { artworkNumber: 46, pos: [11.78, 2.6, 38.0], rotY: -Math.PI / 2, hallId: 'lobby' },
-  { artworkNumber: 47, pos: [-7.0, 2.6, 20.22], rotY: 0, hallId: 'lobby' },
-  { artworkNumber: 48, pos: [7.0, 2.6, 20.22], rotY: 0, hallId: 'lobby' },
+  // -----------------------------------------------------------------
+  // GRAND RECEPTION LOBBY (Slots 43 - 44)
+  // Pruned: Invalid slots 43-46 (niche_lobby_w1/w2/e1/e2) per architectural audit.
+  // Preserved: 2 valid South wall display slots.
+  // -----------------------------------------------------------------
+  { id: 'lobby_slot_05', slotIndex: 43, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'South Wall Bay 1', pos: [-7.0, 2.6, 20.22], rotY: 0 },
+  { id: 'lobby_slot_06', slotIndex: 44, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'South Wall Bay 2', pos: [7.0, 2.6, 20.22], rotY: 0 },
 
-  // Sovereign Central Rotunda (Center: [0, 0, 0], Size: [26, 8, 22], X: -13..13, Z: -11..11)
-  { artworkNumber: 49, pos: [-12.78, 2.6, 7.0], rotY: Math.PI / 2, hallId: 'rotunda' },
-  { artworkNumber: 50, pos: [-12.78, 2.6, -7.0], rotY: Math.PI / 2, hallId: 'rotunda' },
-  { artworkNumber: 51, pos: [12.78, 2.6, 7.0], rotY: -Math.PI / 2, hallId: 'rotunda' },
-  { artworkNumber: 52, pos: [12.78, 2.6, -7.0], rotY: -Math.PI / 2, hallId: 'rotunda' }
+  // -----------------------------------------------------------------
+  // SOVEREIGN CENTRAL ROTUNDA (Slots 45 - 48)
+  // Center: [0, 0, 0], Size: [26, 8, 22], Bounds X: [-13, 13], Z: [-11, 11]
+  // -----------------------------------------------------------------
+  { id: 'rotunda_slot_01', slotIndex: 45, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'West Wall Bay 1', pos: [-12.78, 2.6, 7.0], rotY: Math.PI / 2 },
+  { id: 'rotunda_slot_02', slotIndex: 46, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'West Wall Bay 2', pos: [-12.78, 2.6, -7.0], rotY: Math.PI / 2 },
+  { id: 'rotunda_slot_03', slotIndex: 47, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'East Wall Bay 1', pos: [12.78, 2.6, 7.0], rotY: -Math.PI / 2 },
+  { id: 'rotunda_slot_04', slotIndex: 48, hallId: 'rotunda', hallName: 'Sovereign Central Rotunda', wallDescription: 'East Wall Bay 2', pos: [12.78, 2.6, -7.0], rotY: -Math.PI / 2 }
 ];
 
-/**
- * Assigns slot coordinates and rotations to all artworks dynamically
- */
-export function getSlotForArtwork(art: Artwork): WallSlot {
-  const existingSlot = CANONICAL_WALL_SLOTS.find(s => s.artworkNumber === art.number);
-  if (existingSlot) {
-    return existingSlot;
+// =================================================================
+// AUTOMATIC DISCOVERY & CANONICAL MERGE
+// =================================================================
+const manualMap = new Map<number, Artwork>();
+MANUAL_ARTWORKS.forEach(art => {
+  if (art.number >= 1 && art.number <= MAX_ARTWORKS) {
+    manualMap.set(art.number, art);
   }
+});
 
-  // Dynamic fallback placement along museum corridors or final galleries for any number > 52
-  const idx = art.number - 53;
-  const corridorZ = -2.5 + (idx % 8) * 4.0 - 14.0;
-  const isWest = idx % 2 === 0;
-  return {
-    artworkNumber: art.number,
-    pos: [isWest ? -13.22 : 13.22, 2.6, corridorZ],
-    rotY: isWest ? -Math.PI / 2 : Math.PI / 2,
-    hallId: isWest ? 'corridor_west' : 'corridor_east'
-  };
+const allNumbersSet = new Set<number>();
+MANUAL_ARTWORKS.forEach(art => {
+  if (art.number >= 1 && art.number <= MAX_ARTWORKS) {
+    allNumbersSet.add(art.number);
+  }
+});
+discoveredList.forEach(file => {
+  if (file.number >= 1 && file.number <= MAX_ARTWORKS) {
+    allNumbersSet.add(file.number);
+  }
+});
+
+const sortedNumbers = Array.from(allNumbersSet).sort((a, b) => a - b);
+
+const combinedArtworks: Artwork[] = [];
+
+for (const num of sortedNumbers) {
+  const manual = manualMap.get(num);
+  const discovered = discoveredList.find(f => f.number === num);
+  const numStr = String(num).padStart(2, '0');
+  const defaultTextureUrl = discovered ? discovered.url : `/paintings/${numStr}.png`;
+
+  if (manual) {
+    // Preserve 100% of manual theological metadata
+    combinedArtworks.push({
+      ...manual,
+      textureUrl: manual.textureUrl || defaultTextureUrl
+    });
+  } else {
+    // Clean neutral auto-discovered entry without invented text
+    combinedArtworks.push({
+      id: `art_${num}`,
+      number: num,
+      title: `Artwork ${num}`,
+      subTitle: undefined,
+      scripture: undefined,
+      passage: undefined,
+      description: undefined,
+      symbolism: undefined,
+      hallId: '',
+      hallName: '',
+      textureUrl: defaultTextureUrl
+    });
+  }
 }
 
-// Pre-initialize world positions for all canonical artworks
-ALL_ARTWORKS.forEach(art => {
-  const slot = getSlotForArtwork(art);
-  art.position = slot.pos;
-  art.rotation = [0, slot.rotY, 0];
+export const FINAL_ARTWORKS: Artwork[] = combinedArtworks;
+export const ALL_ARTWORKS: Artwork[] = FINAL_ARTWORKS;
+
+// -----------------------------------------------------------------
+// PHYSICAL DISPLAY SLOT ALLOCATION
+// -----------------------------------------------------------------
+const occupiedSlotIds = new Set<string>();
+
+// Pass 1: Assign artworks that have explicit slotId or matching slotIndex
+for (const art of FINAL_ARTWORKS) {
+  let targetSlot: WallSlot | undefined;
+  if (art.slotId) {
+    targetSlot = CANONICAL_WALL_SLOTS.find(s => s.id === art.slotId && !occupiedSlotIds.has(s.id));
+  }
+  if (!targetSlot) {
+    targetSlot = CANONICAL_WALL_SLOTS.find(s => s.slotIndex === art.number && !occupiedSlotIds.has(s.id));
+  }
+  if (targetSlot) {
+    occupiedSlotIds.add(targetSlot.id);
+    art.slotId = targetSlot.id;
+    art.position = targetSlot.pos;
+    art.rotation = [0, targetSlot.rotY, 0];
+    if (!art.hallId) art.hallId = targetSlot.hallId;
+    if (!art.hallName) art.hallName = targetSlot.hallName;
+  }
+}
+
+// Pass 2: Assign remaining unassigned artworks to first available free slots
+for (const art of FINAL_ARTWORKS) {
+  if (!art.slotId) {
+    const freeSlot = CANONICAL_WALL_SLOTS.find(s => !occupiedSlotIds.has(s.id));
+    if (freeSlot) {
+      occupiedSlotIds.add(freeSlot.id);
+      art.slotId = freeSlot.id;
+      art.position = freeSlot.pos;
+      art.rotation = [0, freeSlot.rotY, 0];
+      if (!art.hallId) art.hallId = freeSlot.hallId;
+      if (!art.hallName) art.hallName = freeSlot.hallName;
+    } else {
+      // Physical capacity reached: Leave unmounted with NO fake coordinates
+      art.slotId = undefined;
+      art.position = undefined;
+      art.rotation = undefined;
+    }
+  }
+}
+
+// Populate hall artworks array with artworks that have legitimate physical slots
+MUSEUM_HALLS.forEach(hall => {
+  hall.artworks = FINAL_ARTWORKS.filter(art => art.hallId === hall.id && art.slotId !== undefined);
 });
+
+/**
+ * Resolves a legitimate physical display slot for an artwork.
+ * Returns null if no slot is assigned or available (NEVER creates fake procedural coordinates).
+ */
+export function getSlotForArtwork(art: Artwork): WallSlot | null {
+  if (art.slotId) {
+    const slotById = CANONICAL_WALL_SLOTS.find(s => s.id === art.slotId);
+    if (slotById) return slotById;
+  }
+  return null;
+}
+
+export function getArtworkByNumber(num: number): Artwork | undefined {
+  if (num < 1 || num > MAX_ARTWORKS) return undefined;
+  return FINAL_ARTWORKS.find(a => a.number === num);
+}
+
+export function getArtworkCount(): number {
+  return FINAL_ARTWORKS.length;
+}
+
+export function getMaxArtworkNumber(): number {
+  return MAX_ARTWORKS;
+}
+
+/**
+ * Derives real-time capacity and display metrics for the museum without hardcoded numbers.
+ */
+export function getMuseumCapacityStats() {
+  const totalSlots = CANONICAL_WALL_SLOTS.length;
+  const totalArtworks = FINAL_ARTWORKS.length;
+  const mountedArtworks = FINAL_ARTWORKS.filter(art => getSlotForArtwork(art) !== null);
+  const unmountedArtworks = FINAL_ARTWORKS.filter(art => getSlotForArtwork(art) === null);
+
+  return {
+    totalSlots,
+    totalArtworks,
+    mountedCount: mountedArtworks.length,
+    availableEmptySlotCount: Math.max(0, totalSlots - mountedArtworks.length),
+    unmountedCount: unmountedArtworks.length,
+    isAtCapacity: mountedArtworks.length >= totalSlots
+  };
+}
 

@@ -388,7 +388,7 @@ export class MuseumScene {
     const profiler = DiagnosticProfiler.getInstance();
 
     try {
-      // 1. Asynchronously preload and prewarm all 36 artwork textures on GPU
+      // 1. Asynchronously preload and prewarm all canonical artwork textures on GPU
       await this.gallerySystem.preloadAndPrewarmAll(this.renderer, (loaded, total, msg) => {
         if (!this.isDisposed && this.onPrewarmProgress) {
           this.onPrewarmProgress({

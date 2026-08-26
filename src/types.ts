@@ -8,6 +8,8 @@ export interface Artwork {
   description: string;
   hallId: string;
   hallName: string;
+  slotId?: string; // Explicit assigned display slot ID (e.g. 'hall_01_slot_01')
+  textureUrl?: string; // Optional custom texture url (defaults to `/paintings/${pad(number)}.png`)
   position?: [number, number, number]; // [x, y, z] in world space
   rotation?: [number, number, number]; // [rx, ry, rz]
   width?: number;
@@ -15,6 +17,16 @@ export interface Artwork {
   canvasColorPrimary?: string;
   canvasColorSecondary?: string;
   symbolism?: string;
+}
+
+export interface WallSlot {
+  id: string;             // Unique identifier (e.g. 'hall_01_slot_01')
+  slotIndex: number;      // 1-based index (1 to 48)
+  hallId: string;         // 'hall_01', 'hall_02', ..., 'final_hall', 'lobby', 'rotunda'
+  hallName: string;       // Human-readable hall name
+  wallDescription: string;// Descriptive location on wall (e.g. 'North Wall Bay 1')
+  pos: [number, number, number]; // World [x, y, z]
+  rotY: number;           // Rotation around Y axis
 }
 
 export interface Hall {

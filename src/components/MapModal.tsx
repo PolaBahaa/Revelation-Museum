@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlayerState, Artwork } from '../types';
-import { MUSEUM_HALLS, ALL_ARTWORKS } from '../museum/MuseumData';
+import { MUSEUM_HALLS, FINAL_ARTWORKS, MAX_ARTWORKS } from '../museum/MuseumData';
 import { X, Navigation, Eye, Sparkles, Compass, MapPin } from 'lucide-react';
 
 interface MapModalProps {
@@ -61,20 +61,20 @@ export const MapModal: React.FC<MapModalProps> = ({
   // Architectural palace zones
   const rooms = [
     { id: 'entrance', name: 'Royal Entrance', cx: 0, cz: 50, w: 16, d: 12, fill: '#18141c', stroke: '#d4af37', label: 'Entrance Vestibule' },
-    { id: 'lobby', name: 'Ceremonial Lobby', cx: 0, cz: 32, w: 24, d: 24, fill: '#141226', stroke: '#f59e0b', label: 'Grand Lobby' },
+    { id: 'lobby', name: 'Ceremonial Lobby', cx: 0, cz: 32, w: 24, d: 24, fill: '#141226', stroke: '#f59e0b', label: 'Grand Reception Lobby' },
     { id: 'corridor_south', name: 'Processional Gallery', cx: 0, cz: 15.5, w: 12, d: 9, fill: '#1e1824', stroke: '#71717a', label: 'South Gallery' },
-    { id: 'rotunda', name: 'Central Rotunda', cx: 0, cz: 0, w: 26, d: 22, fill: '#231e2b', stroke: '#fbbf24', label: 'Sovereign Rotunda' },
+    { id: 'rotunda', name: 'Central Rotunda', cx: 0, cz: 0, w: 26, d: 22, fill: '#231e2b', stroke: '#fbbf24', label: 'Central Rotunda' },
     { id: 'corridor_west', name: 'West Corridor', cx: -16.5, cz: -2.5, w: 7, d: 45, fill: '#1a1622', stroke: '#52525b', label: 'West Corridor' },
     { id: 'corridor_east', name: 'East Corridor', cx: 16.5, cz: -2.5, w: 7, d: 45, fill: '#1a1622', stroke: '#52525b', label: 'East Corridor' },
-    { id: 'hall_01', name: 'Hall 01: The Seven Seals', cx: -30, cz: 10, w: 20, d: 20, fill: '#151d3b', stroke: '#3b82f6', label: 'Hall 01: Seven Seals', hallId: 'hall_01' },
-    { id: 'hall_02', name: 'Hall 02: The Seven Trumpets', cx: -30, cz: -15, w: 20, d: 20, fill: '#2a1624', stroke: '#ec4899', label: 'Hall 02: Seven Trumpets', hallId: 'hall_02' },
-    { id: 'hall_03', name: 'Hall 03: The Heavenly Vision', cx: 30, cz: 10, w: 20, d: 20, fill: '#151d3b', stroke: '#3b82f6', label: 'Hall 03: Heavenly Vision', hallId: 'hall_03' },
-    { id: 'hall_04', name: 'Hall 04: The Seven Bowls', cx: 30, cz: -15, w: 20, d: 20, fill: '#2a1624', stroke: '#ec4899', label: 'Hall 04: Seven Bowls', hallId: 'hall_04' },
+    { id: 'hall_01', name: 'Hall 01: Classical Masterworks', cx: -30, cz: 10, w: 20, d: 20, fill: '#151d3b', stroke: '#3b82f6', label: 'Hall 01: Masterworks', hallId: 'hall_01' },
+    { id: 'hall_02', name: 'Hall 02: Historic Heritage', cx: -30, cz: -15, w: 20, d: 20, fill: '#2a1624', stroke: '#ec4899', label: 'Hall 02: Heritage', hallId: 'hall_02' },
+    { id: 'hall_03', name: 'Hall 03: Grand Luminary', cx: 30, cz: 10, w: 20, d: 20, fill: '#151d3b', stroke: '#3b82f6', label: 'Hall 03: Luminary', hallId: 'hall_03' },
+    { id: 'hall_04', name: 'Hall 04: Sovereign Heritage', cx: 30, cz: -15, w: 20, d: 20, fill: '#2a1624', stroke: '#ec4899', label: 'Hall 04: Sovereign', hallId: 'hall_04' },
     { id: 'corridor_north', name: 'North Hallway', cx: 0, cz: -20, w: 12, d: 18, fill: '#1e1824', stroke: '#71717a', label: 'North Hallway' },
-    { id: 'hall_05', name: 'Hall 05: The Final Victory', cx: -15, cz: -38, w: 22, d: 18, fill: '#151d3b', stroke: '#3b82f6', label: 'Hall 05: Final Victory', hallId: 'hall_05' },
-    { id: 'hall_06', name: 'Hall 06: The New Jerusalem', cx: 15, cz: -38, w: 22, d: 18, fill: '#2a1624', stroke: '#ec4899', label: 'Hall 06: New Jerusalem', hallId: 'hall_06' },
-    { id: 'passage_final', name: 'Corridor of Revelation', cx: 0, cz: -53, w: 12, d: 12, fill: '#1e1824', stroke: '#71717a', label: 'Corridor of Revelation' },
-    { id: 'final_hall', name: 'Throne Gallery', cx: 0, cz: -68, w: 24, d: 18, fill: '#281c30', stroke: '#fbbf24', label: 'Final Throne Gallery' },
+    { id: 'hall_05', name: 'Hall 05: Royal Masterpiece', cx: -15, cz: -38, w: 22, d: 18, fill: '#151d3b', stroke: '#3b82f6', label: 'Hall 05: Royal', hallId: 'hall_05' },
+    { id: 'hall_06', name: 'Hall 06: Imperial Dawn', cx: 15, cz: -38, w: 22, d: 18, fill: '#2a1624', stroke: '#ec4899', label: 'Hall 06: Imperial', hallId: 'hall_06' },
+    { id: 'passage_final', name: 'Grand Sovereign Corridor', cx: 0, cz: -53, w: 12, d: 12, fill: '#1e1824', stroke: '#71717a', label: 'Sovereign Corridor' },
+    { id: 'final_hall', name: 'The Grand Sovereign Hall', cx: 0, cz: -68, w: 24, d: 18, fill: '#281c30', stroke: '#fbbf24', label: 'Grand Sovereign Hall', hallId: 'final_hall' },
     { id: 'exit_terrace', name: 'Garden Terrace', cx: 0, cz: -83, w: 20, d: 12, fill: '#161c1e', stroke: '#10b981', label: 'Palace Terrace & Vista' }
   ];
 
@@ -192,8 +192,8 @@ export const MapModal: React.FC<MapModalProps> = ({
                 );
               })}
 
-              {/* Canonical 36 Artwork Pins derived from 3D world positions */}
-              {ALL_ARTWORKS.map((art) => {
+              {/* Canonical Artwork Pins derived dynamically from FINAL_ARTWORKS 3D world positions */}
+              {FINAL_ARTWORKS.map((art) => {
                 if (!art.position) return null;
                 const pinPos = toSvgCoords(art.position[0], art.position[2]);
                 const isHovered = hoveredArtwork?.id === art.id;
@@ -217,24 +217,24 @@ export const MapModal: React.FC<MapModalProps> = ({
                   >
                     {/* Pulsing ring on hover */}
                     {isHovered && (
-                      <circle r="12" fill="none" stroke="#f59e0b" strokeWidth="2" className="animate-ping" opacity="0.7" />
+                      <circle r="14" fill="none" stroke="#f59e0b" strokeWidth="2" className="animate-ping" opacity="0.75" />
                     )}
 
                     {/* Outer marker pin */}
                     <circle
-                      r={isHovered ? 8 : 6}
+                      r={isHovered ? 10 : 7.8}
                       fill={isHovered ? '#fbbf24' : '#d97706'}
                       stroke="#fef08a"
-                      strokeWidth={isHovered ? 2 : 1}
+                      strokeWidth={isHovered ? 2 : 1.2}
                       filter={isHovered ? 'url(#gold-glow)' : undefined}
                     />
 
                     {/* Number label inside pin */}
                     <text
-                      y={2.5}
-                      fill="#18181b"
-                      fontSize="6.5"
-                      fontWeight="bold"
+                      y={2.6}
+                      fill="#09090b"
+                      fontSize={art.number >= 10 ? '6.8' : '7.5'}
+                      fontWeight="900"
                       fontFamily="sans-serif"
                       textAnchor="middle"
                       pointerEvents="none"
@@ -274,7 +274,7 @@ export const MapModal: React.FC<MapModalProps> = ({
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-600 border border-amber-300 inline-block" />
-                  Artworks (1–{ALL_ARTWORKS.length})
+                  Installed Artworks ({FINAL_ARTWORKS.length} / {MAX_ARTWORKS} Slots)
                 </span>
               </div>
               <span className="text-zinc-500 italic">Click any room or artwork to navigate</span>
@@ -290,7 +290,7 @@ export const MapModal: React.FC<MapModalProps> = ({
               {hoveredArtwork ? (
                 <div className="space-y-1.5 animate-fadeIn">
                   <div className="flex items-center justify-between text-xs text-amber-400 font-mono">
-                    <span>EXHIBITION #{hoveredArtwork.number} OF {ALL_ARTWORKS.length}</span>
+                    <span>EXHIBITION #{hoveredArtwork.number} (OF {MAX_ARTWORKS} CAPACITY)</span>
                     <span className="text-zinc-400">{hoveredArtwork.hallName}</span>
                   </div>
                   <h4 className="text-sm font-serif font-bold text-amber-200">
@@ -367,19 +367,13 @@ export const MapModal: React.FC<MapModalProps> = ({
                   >
                     <div className="font-semibold text-amber-300 flex items-center justify-between">
                       <span>{hall.code}: {hall.title}</span>
-                      <span className="text-[10px] font-mono text-amber-400/80">6 Artworks</span>
+                      <span className="text-[10px] font-mono text-amber-400/80">
+                        {FINAL_ARTWORKS.filter((a) => a.hallId === hall.id).length} Artworks
+                      </span>
                     </div>
                     <div className="text-[10px] text-zinc-400 truncate">{hall.subTitle}</div>
                   </button>
                 ))}
-
-                <button
-                  onClick={() => { onTeleport(0, 1.7, -68); onClose(); }}
-                  className="p-2.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-left border border-zinc-700/80 text-zinc-200 cursor-pointer transition-all hover:border-amber-500/50"
-                >
-                  <div className="font-semibold text-amber-300">Final Throne Gallery</div>
-                  <div className="text-[10px] text-zinc-400">Culmination View (Z: -68m)</div>
-                </button>
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 {
   "name": "Prophetia Museum",
-  "description": "Prophetia Museum - An immersive 3D WebGL interactive classical royal museum showcasing 36 masterworks through the Book of Revelation.",
+  "description": "Prophetia Museum - A 3D Gallery Museum designed as an innovative visual aid for immersive presentation, exploration, and interactive exhibition.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

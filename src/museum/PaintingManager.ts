@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-import { Artwork } from '../types';
-import { ALL_ARTWORKS, CANONICAL_WALL_SLOTS, getSlotForArtwork, WallSlot } from './MuseumData';
+import { Artwork, WallSlot } from '../types';
+import { FINAL_ARTWORKS, getSlotForArtwork } from './MuseumData';
 import { Lighting } from './Lighting';
 import { DiagnosticProfiler } from './DiagnosticProfiler';
-import { TextureGenerator } from './TextureGenerator';
 
 export interface InteractiveArtworkMesh {
   artwork: Artwork;
@@ -53,10 +52,15 @@ export class PaintingManager {
   public initAllArtworks(): void {
     if (this.slotRuntimeItems.length > 0) return;
 
-    for (const art of ALL_ARTWORKS) {
+    for (const art of FINAL_ARTWORKS) {
       const slot = getSlotForArtwork(art);
+      if (!slot) {
+        // If an artwork does not have an assigned legitimate physical wall slot, DO NOT render a mesh
+        continue;
+      }
       art.position = slot.pos;
       art.rotation = [0, slot.rotY, 0];
+      art.slotId = slot.id;
 
       this.setupArtworkSlot(art, slot);
     }
@@ -103,54 +107,24 @@ export class PaintingManager {
     this.galleryGroup.add(spotGroup);
     this.galleryGroup.add(group);
 
-    // Initial guaranteed visible artwork mesh with high-resolution masterpiece canvas
-    const initialTexture = TextureGenerator.createArtworkMasterpieceTexture(art);
-    const initialDims = this.calculateArtworkDimensions(1536, 1024);
-    const initialGeo = new THREE.PlaneGeometry(initialDims.width, initialDims.height);
-    const initialMat = new THREE.MeshStandardMaterial({
-      map: initialTexture,
-      transparent: true,
-      alphaTest: 0.005,
-      roughness: 0.3,
-      metalness: 0.05,
-      side: THREE.FrontSide
-    });
-
-    const paintingMesh = new THREE.Mesh(initialGeo, initialMat);
-    paintingMesh.position.set(0, 0, 0.01);
-    paintingMesh.castShadow = false;
-    paintingMesh.receiveShadow = false;
-    group.add(paintingMesh);
-
-    paintingMesh.updateMatrix();
-    paintingMesh.updateMatrixWorld(true);
-    paintingMesh.matrixAutoUpdate = false;
-
-    group.updateMatrix();
-    group.updateMatrixWorld(true);
-    group.matrixAutoUpdate = false;
-
     const interactiveItem: InteractiveArtworkMesh = {
       artwork: art,
-      mesh: paintingMesh,
+      mesh: null as unknown as THREE.Mesh,
       worldPosition: new THREE.Vector3(slot.pos[0], slot.pos[1], slot.pos[2]),
       isRealPNG: false
     };
-    this.interactiveArtworks.push(interactiveItem);
 
     this.slotRuntimeItems.push({
       art,
       slot,
       group,
       interactiveItem,
-      mesh: paintingMesh,
-      texture: initialTexture,
       loaded: false
     });
   }
 
   /**
-   * Preloads all 36 artwork textures, configures their colorSpace & anisotropy,
+   * Preloads all canonical artwork textures dynamically, configures their colorSpace & anisotropy,
    * constructs the physical meshes, and explicitly prewarms/uploads them into GPU memory.
    * Uses Promise-caching to guarantee strictly one logical texture load per URL.
    */
@@ -168,7 +142,7 @@ export class PaintingManager {
     if (!PaintingManager.PREWARMING_ENABLED) {
       console.log('[PaintingManager] Prewarming disabled via configuration switch.');
       this.isPrewarmed = true;
-      const total = ALL_ARTWORKS.length;
+      const total = FINAL_ARTWORKS.length;
       if (onProgress) onProgress(total, total, 'Ready (Prewarming skipped)');
       return Promise.resolve();
     }
@@ -268,10 +242,9 @@ export class PaintingManager {
     }
 
     const numStr = String(item.art.number).padStart(2, '0');
-    const pngPath = `/paintings/${numStr}.png`;
+    const url = item.art.textureUrl || `/paintings/${numStr}.png`;
     const profiler = DiagnosticProfiler.getInstance();
-
-    const texture = await this.fetchTextureCached(pngPath, item.art.number);
+    const texture = await this.fetchTextureCached(url, item.art.number);
     if (!texture || this.isDisposed) {
       return;
     }
@@ -294,35 +267,50 @@ export class PaintingManager {
         item.art.width = targetW;
         item.art.height = targetH;
 
-        if (item.mesh) {
-          item.mesh.geometry.dispose();
-          const newGeo = new THREE.PlaneGeometry(targetW, targetH);
-          item.mesh.geometry = newGeo;
-          const mat = item.mesh.material as THREE.MeshStandardMaterial;
-          mat.map = texture;
-          mat.transparent = true;
-          mat.alphaTest = 0.005;
-          mat.depthWrite = true;
-          mat.roughness = 0.25;
-          mat.metalness = 0.02;
-          mat.side = THREE.FrontSide;
-          mat.needsUpdate = true;
+        const geo = new THREE.PlaneGeometry(targetW, targetH);
+        const mat = new THREE.MeshStandardMaterial({
+          map: texture,
+          transparent: true,
+          alphaTest: 0.005,
+          depthWrite: true,
+          roughness: 0.25,
+          metalness: 0.02,
+          side: THREE.FrontSide
+        });
 
-          // Perform bounding box validation
-          newGeo.computeBoundingBox();
-          if (newGeo.boundingBox) {
-            const currentWidth = newGeo.boundingBox.max.x - newGeo.boundingBox.min.x;
-            if (currentWidth > MAX_ARTWORK_WIDTH + 0.01) {
-              const scaleFactor = MAX_ARTWORK_WIDTH / currentWidth;
-              item.mesh.scale.set(scaleFactor, scaleFactor, 1.0);
-            }
+        const paintingMesh = new THREE.Mesh(geo, mat);
+        paintingMesh.position.set(0, 0, 0.01);
+        paintingMesh.castShadow = false;
+        paintingMesh.receiveShadow = false;
+
+        item.group.add(paintingMesh);
+
+        // Perform bounding box validation
+        geo.computeBoundingBox();
+        if (geo.boundingBox) {
+          const currentWidth = geo.boundingBox.max.x - geo.boundingBox.min.x;
+          if (currentWidth > MAX_ARTWORK_WIDTH + 0.01) {
+            const scaleFactor = MAX_ARTWORK_WIDTH / currentWidth;
+            paintingMesh.scale.set(scaleFactor, scaleFactor, 1.0);
           }
+        }
 
-          item.mesh.updateMatrix();
-          item.mesh.updateMatrixWorld(true);
-          item.mesh.getWorldPosition(item.interactiveItem.worldPosition);
-          item.interactiveItem.isRealPNG = true;
-          item.interactiveItem.mesh = item.mesh;
+        paintingMesh.updateMatrix();
+        paintingMesh.updateMatrixWorld(true);
+        paintingMesh.matrixAutoUpdate = false;
+
+        item.group.updateMatrix();
+        item.group.updateMatrixWorld(true);
+        item.group.matrixAutoUpdate = false;
+
+        item.mesh = paintingMesh;
+        item.interactiveItem.mesh = paintingMesh;
+        item.interactiveItem.isRealPNG = true;
+        paintingMesh.getWorldPosition(item.interactiveItem.worldPosition);
+
+        // Only register into interactiveArtworks now that it has a real physical mesh
+        if (!this.interactiveArtworks.includes(item.interactiveItem)) {
+          this.interactiveArtworks.push(item.interactiveItem);
         }
 
         item.texture = texture;
@@ -333,15 +321,15 @@ export class PaintingManager {
         profiler.recordTextureGpuInit(item.art.number);
       }
     } catch (err) {
-      console.warn(`[PaintingManager] Error setting up artwork ${numStr}:`, err);
+      console.warn(`[PaintingManager] Error setting up artwork ${item.art.number}:`, err);
     }
   }
 
   // Cached nearest artwork query to eliminate allocations and per-frame distance calculations
   private lastQueryPos = new THREE.Vector3(Infinity, Infinity, Infinity);
   private lastQueryTime = 0;
-  private cachedNearestResult: { artwork: Artwork; distance: number } = {
-    artwork: ALL_ARTWORKS[0],
+  private cachedNearestResult: { artwork: Artwork | null; distance: number } = {
+    artwork: FINAL_ARTWORKS.length > 0 ? FINAL_ARTWORKS[0] : null,
     distance: Infinity,
   };
   private hasCachedNearest = false;
@@ -354,7 +342,9 @@ export class PaintingManager {
 
     // Return cached result if player has moved less than 0.25m and within 100ms
     if (!forceRecalculate && distMovedSq < 0.0625 && (now - this.lastQueryTime) < 100) {
-      return this.hasCachedNearest ? this.cachedNearestResult : null;
+      return (this.hasCachedNearest && this.cachedNearestResult.artwork)
+        ? (this.cachedNearestResult as { artwork: Artwork; distance: number })
+        : null;
     }
 
     this.lastQueryPos.copy(playerPos);
@@ -362,7 +352,7 @@ export class PaintingManager {
 
     let nearest: Artwork | null = null;
     let minDistanceSq = Infinity;
-    const maxThresholdSq = 6.0 * 6.0; // 36.0 m^2
+    const maxThresholdSq = 6.0 * 6.0;
 
     for (let i = 0; i < this.interactiveArtworks.length; i++) {
       const item = this.interactiveArtworks[i];
@@ -381,7 +371,7 @@ export class PaintingManager {
       this.cachedNearestResult.artwork = nearest;
       this.cachedNearestResult.distance = Math.sqrt(minDistanceSq);
       this.hasCachedNearest = true;
-      return this.cachedNearestResult;
+      return { artwork: nearest, distance: this.cachedNearestResult.distance };
     }
 
     this.hasCachedNearest = false;
@@ -389,11 +379,22 @@ export class PaintingManager {
   }
 
   public getArtworkByNumber(num: number): Artwork | undefined {
-    return ALL_ARTWORKS.find(a => a.number === num);
+    return FINAL_ARTWORKS.find(a => a.number === num);
   }
 
   public getArtworkCount(): number {
-    return ALL_ARTWORKS.length;
+    return FINAL_ARTWORKS.length;
+  }
+
+  public getMaxArtworkNumber(): number {
+    if (FINAL_ARTWORKS.length === 0) return 0;
+    let max = 0;
+    for (let i = 0; i < FINAL_ARTWORKS.length; i++) {
+      if (FINAL_ARTWORKS[i].number > max) {
+        max = FINAL_ARTWORKS[i].number;
+      }
+    }
+    return max;
   }
 }
 

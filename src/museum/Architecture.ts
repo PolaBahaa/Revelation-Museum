@@ -52,19 +52,19 @@ export class Architecture {
       { id: 'corridor_north', name: 'State North Hallway', center: [0, 0, -20], size: [12, 6, 18], wallColor: 'alabaster', floorType: 'parquet' },
 
       // Halls 01-06 (Palace Exhibition Galleries)
-      { id: 'hall_01', name: 'Hall 01: The Seven Seals Gallery', center: [-30, 0, 10], size: [20, 6, 20], wallColor: 'navy', floorType: 'parquet' },
-      { id: 'hall_02', name: 'Hall 02: The Seven Trumpets Gallery', center: [-30, 0, -15], size: [20, 6, 20], wallColor: 'burgundy', floorType: 'parquet' },
-      { id: 'hall_03', name: 'Hall 03: The Heavenly Vision Gallery', center: [30, 0, 10], size: [20, 6, 20], wallColor: 'navy', floorType: 'parquet' },
-      { id: 'hall_04', name: 'Hall 04: The Seven Bowls Gallery', center: [30, 0, -15], size: [20, 6, 20], wallColor: 'burgundy', floorType: 'parquet' },
-      { id: 'hall_05', name: 'Hall 05: The Final Victory Gallery', center: [-15, 0, -38], size: [22, 6, 18], wallColor: 'navy', floorType: 'parquet' },
-      { id: 'hall_06', name: 'Hall 06: The New Jerusalem Gallery', center: [15, 0, -38], size: [22, 6, 18], wallColor: 'burgundy', floorType: 'parquet' },
+      { id: 'hall_01', name: 'Hall 01: Classical Masterworks Gallery', center: [-30, 0, 10], size: [20, 6, 20], wallColor: 'navy', floorType: 'parquet' },
+      { id: 'hall_02', name: 'Hall 02: Historic Heritage Gallery', center: [-30, 0, -15], size: [20, 6, 20], wallColor: 'burgundy', floorType: 'parquet' },
+      { id: 'hall_03', name: 'Hall 03: Grand Luminary Gallery', center: [30, 0, 10], size: [20, 6, 20], wallColor: 'navy', floorType: 'parquet' },
+      { id: 'hall_04', name: 'Hall 04: Sovereign Heritage Gallery', center: [30, 0, -15], size: [20, 6, 20], wallColor: 'burgundy', floorType: 'parquet' },
+      { id: 'hall_05', name: 'Hall 05: Royal Masterpiece Gallery', center: [-15, 0, -38], size: [22, 6, 18], wallColor: 'navy', floorType: 'parquet' },
+      { id: 'hall_06', name: 'Hall 06: Imperial Dawn Gallery', center: [15, 0, -38], size: [22, 6, 18], wallColor: 'burgundy', floorType: 'parquet' },
 
       // Gallery Spine & Passage
       { id: 'passage_mid', name: 'Gallery North Spine', center: [0, 0, -38], size: [8, 6, 18], wallColor: 'alabaster', floorType: 'parquet' },
-      { id: 'passage_final', name: 'Corridor of Revelation', center: [0, 0, -53], size: [12, 6, 12], wallColor: 'alabaster', floorType: 'parquet' },
+      { id: 'passage_final', name: 'Grand Sovereign Corridor', center: [0, 0, -53], size: [12, 6, 12], wallColor: 'alabaster', floorType: 'parquet' },
 
       // Final Gallery & Exit
-      { id: 'final_hall', name: 'Final Revelation Throne Gallery', center: [0, 0, -68], size: [24, 7, 18], wallColor: 'navy', floorType: 'marble', hasSkylight: true },
+      { id: 'final_hall', name: 'The Grand Sovereign Hall', center: [0, 0, -68], size: [24, 7, 18], wallColor: 'navy', floorType: 'marble', hasSkylight: true },
       { id: 'exit_terrace', name: 'Palace Garden Terrace & Vista', center: [0, 0, -83], size: [20, 6, 12], wallColor: 'alabaster', floorType: 'marble' }
     ];
 
