@@ -23,9 +23,9 @@ interface SlotRuntimeItem {
 
 // Architectural Bay Constraints:
 // Pilaster spacing in standard gallery halls is ~3.6m to 4.0m with 0.46m capital widths.
-// MAX_ARTWORK_WIDTH = 2.95m guarantees a visible 0.35m - 0.50m architectural clearance gap.
-const MAX_ARTWORK_WIDTH = 2.95;
-const MAX_ARTWORK_HEIGHT = 2.45;
+// MAX_ARTWORK_WIDTH = 2.60m and corridor width = 2.30m guarantee a visible 0.35m - 0.65m architectural clearance gap.
+const MAX_ARTWORK_WIDTH = 2.60;
+const MAX_ARTWORK_HEIGHT = 2.35;
 
 export class PaintingManager {
   public static PREWARMING_ENABLED = true;
@@ -70,18 +70,32 @@ export class PaintingManager {
    * Calculates proportional dimensions with strict architectural clearance constraints.
    * Guarantees that artworks never overlap pilasters, columns, dado rails, or upper cornices.
    */
-  private calculateArtworkDimensions(imgWidth: number, imgHeight: number): { width: number; height: number } {
+  private calculateArtworkDimensions(imgWidth: number, imgHeight: number, slot?: WallSlot): { width: number; height: number } {
     const aspect = imgWidth / imgHeight;
-    const preferredHeight = 2.4;
+    let maxBayWidth = MAX_ARTWORK_WIDTH;
+    let maxBayHeight = MAX_ARTWORK_HEIGHT;
+
+    if (slot) {
+      const isCorridor = slot.hallId.startsWith('corridor_') || slot.hallId === 'passage_final' || slot.slotIndex >= 79;
+      if (isCorridor) {
+        maxBayWidth = 2.30;
+        maxBayHeight = 2.20;
+      } else {
+        maxBayWidth = 2.60;
+        maxBayHeight = 2.35;
+      }
+    }
+
+    const preferredHeight = Math.min(2.35, maxBayHeight);
     const preferredWidth = preferredHeight * aspect;
 
     // 1. Constrain to maximum allowable wall bay width
-    let targetWidth = Math.min(preferredWidth, MAX_ARTWORK_WIDTH);
+    let targetWidth = Math.min(preferredWidth, maxBayWidth);
     let targetHeight = targetWidth / aspect;
 
     // 2. Constrain to vertical clearance (dado rail at Y=1.2m and upper frieze at Y=5.35m)
-    if (targetHeight > MAX_ARTWORK_HEIGHT) {
-      targetHeight = MAX_ARTWORK_HEIGHT;
+    if (targetHeight > maxBayHeight) {
+      targetHeight = maxBayHeight;
       targetWidth = targetHeight * aspect;
     }
 
@@ -260,7 +274,7 @@ export class PaintingManager {
       const img = texture.image as HTMLImageElement | undefined;
       if (img && img.width > 0 && img.height > 0) {
         profiler.recordTextureLoaded(item.art.number, img.width, img.height);
-        const dims = this.calculateArtworkDimensions(img.width, img.height);
+        const dims = this.calculateArtworkDimensions(img.width, img.height, item.slot);
         const targetW = dims.width;
         const targetH = dims.height;
 
@@ -289,8 +303,10 @@ export class PaintingManager {
         geo.computeBoundingBox();
         if (geo.boundingBox) {
           const currentWidth = geo.boundingBox.max.x - geo.boundingBox.min.x;
-          if (currentWidth > MAX_ARTWORK_WIDTH + 0.01) {
-            const scaleFactor = MAX_ARTWORK_WIDTH / currentWidth;
+          const isCorridor = item.slot.hallId.startsWith('corridor_') || item.slot.hallId === 'passage_final' || item.slot.slotIndex >= 79;
+          const maxAllowedWidth = isCorridor ? 2.30 : MAX_ARTWORK_WIDTH;
+          if (currentWidth > maxAllowedWidth + 0.01) {
+            const scaleFactor = maxAllowedWidth / currentWidth;
             paintingMesh.scale.set(scaleFactor, scaleFactor, 1.0);
           }
         }

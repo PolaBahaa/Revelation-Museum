@@ -1326,8 +1326,8 @@ export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   { id: 'hall_05_slot_02', slotIndex: 26, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'North Wall Bay 2', pos: [-9.5, 2.6, -46.78], rotY: 0 },
   { id: 'hall_05_slot_03', slotIndex: 27, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'South Wall Bay 1', pos: [-20.5, 2.6, -29.22], rotY: Math.PI },
   { id: 'hall_05_slot_04', slotIndex: 28, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'South Wall Bay 2', pos: [-9.5, 2.6, -29.22], rotY: Math.PI },
-  { id: 'hall_05_slot_05', slotIndex: 29, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'West Wall Bay 1', pos: [-25.78, 2.6, -42.0], rotY: Math.PI / 2 },
-  { id: 'hall_05_slot_06', slotIndex: 30, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'West Wall Bay 2', pos: [-25.78, 2.6, -34.0], rotY: Math.PI / 2 },
+  { id: 'hall_05_slot_05', slotIndex: 29, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'West Wall Bay 1', pos: [-25.78, 2.6, -41.6], rotY: Math.PI / 2 },
+  { id: 'hall_05_slot_06', slotIndex: 30, hallId: 'hall_05', hallName: 'Hall 05: Royal Masterpiece', wallDescription: 'West Wall Bay 2', pos: [-25.78, 2.6, -34.4], rotY: Math.PI / 2 },
 
   // -----------------------------------------------------------------
   // HALL 06: IMPERIAL DAWN (Slots 31 - 36)
@@ -1337,27 +1337,27 @@ export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   { id: 'hall_06_slot_02', slotIndex: 32, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'North Wall Bay 2', pos: [20.5, 2.6, -46.78], rotY: 0 },
   { id: 'hall_06_slot_03', slotIndex: 33, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'South Wall Bay 1', pos: [9.5, 2.6, -29.22], rotY: Math.PI },
   { id: 'hall_06_slot_04', slotIndex: 34, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'South Wall Bay 2', pos: [20.5, 2.6, -29.22], rotY: Math.PI },
-  { id: 'hall_06_slot_05', slotIndex: 35, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'East Wall Bay 1', pos: [25.78, 2.6, -42.0], rotY: -Math.PI / 2 },
-  { id: 'hall_06_slot_06', slotIndex: 36, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'East Wall Bay 2', pos: [25.78, 2.6, -34.0], rotY: -Math.PI / 2 },
+  { id: 'hall_06_slot_05', slotIndex: 35, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'East Wall Bay 1', pos: [25.78, 2.6, -41.6], rotY: -Math.PI / 2 },
+  { id: 'hall_06_slot_06', slotIndex: 36, hallId: 'hall_06', hallName: 'Hall 06: Imperial Dawn', wallDescription: 'East Wall Bay 2', pos: [25.78, 2.6, -34.4], rotY: -Math.PI / 2 },
 
   // -----------------------------------------------------------------
   // THE GRAND SOVEREIGN HALL (Slots 37 - 42)
   // Center: [0, 0, -68], Size: [24, 7, 18], Bounds X: [-12, 12], Z: [-77, -59]
   // -----------------------------------------------------------------
-  { id: 'final_hall_slot_01', slotIndex: 37, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'West Wall Bay 1', pos: [-11.78, 2.6, -72.0], rotY: Math.PI / 2 },
-  { id: 'final_hall_slot_02', slotIndex: 38, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'West Wall Bay 2', pos: [-11.78, 2.6, -64.0], rotY: Math.PI / 2 },
-  { id: 'final_hall_slot_03', slotIndex: 39, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'East Wall Bay 1', pos: [11.78, 2.6, -72.0], rotY: -Math.PI / 2 },
-  { id: 'final_hall_slot_04', slotIndex: 40, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'East Wall Bay 2', pos: [11.78, 2.6, -64.0], rotY: -Math.PI / 2 },
-  { id: 'final_hall_slot_05', slotIndex: 41, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'North Wall Bay 1', pos: [-7.0, 2.6, -76.78], rotY: 0 },
-  { id: 'final_hall_slot_06', slotIndex: 42, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'North Wall Bay 2', pos: [7.0, 2.6, -76.78], rotY: 0 },
+  { id: 'final_hall_slot_01', slotIndex: 37, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'West Wall Bay 1', pos: [-11.78, 2.6, -71.6], rotY: Math.PI / 2 },
+  { id: 'final_hall_slot_02', slotIndex: 38, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'West Wall Bay 2', pos: [-11.78, 2.6, -64.4], rotY: Math.PI / 2 },
+  { id: 'final_hall_slot_03', slotIndex: 39, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'East Wall Bay 1', pos: [11.78, 2.6, -71.6], rotY: -Math.PI / 2 },
+  { id: 'final_hall_slot_04', slotIndex: 40, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'East Wall Bay 2', pos: [11.78, 2.6, -64.4], rotY: -Math.PI / 2 },
+  { id: 'final_hall_slot_05', slotIndex: 41, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'North Wall Bay 1', pos: [-10.0, 2.6, -76.78], rotY: 0 },
+  { id: 'final_hall_slot_06', slotIndex: 42, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'North Wall Bay 2', pos: [10.0, 2.6, -76.78], rotY: 0 },
 
   // -----------------------------------------------------------------
   // GRAND RECEPTION LOBBY (Slots 43 - 44)
   // Pruned: Invalid slots 43-46 (niche_lobby_w1/w2/e1/e2) per architectural audit.
   // Preserved: 2 valid South wall display slots.
   // -----------------------------------------------------------------
-  { id: 'lobby_slot_05', slotIndex: 43, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'South Wall Bay 1', pos: [-7.0, 2.6, 20.22], rotY: 0 },
-  { id: 'lobby_slot_06', slotIndex: 44, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'South Wall Bay 2', pos: [7.0, 2.6, 20.22], rotY: 0 },
+  { id: 'lobby_slot_05', slotIndex: 43, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'South Wall Bay 1', pos: [-10.0, 2.6, 20.22], rotY: 0 },
+  { id: 'lobby_slot_06', slotIndex: 44, hallId: 'lobby', hallName: 'Grand Reception Lobby', wallDescription: 'South Wall Bay 2', pos: [10.0, 2.6, 20.22], rotY: 0 },
 
   // -----------------------------------------------------------------
   // SOVEREIGN CENTRAL ROTUNDA (Slots 45 - 48)
@@ -1388,10 +1388,10 @@ export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   // GROUP C: SOVEREIGN CENTRAL ROTUNDA (Slots 55 - 58)
   // Hall: rotunda, Center: [0, 0, 0], Size: [26, 8, 22]
   // -----------------------------------------------------------------
-  { id: 'rotunda_slot_05', slotIndex: 55, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall West Bay', pos: [-8.0, 2.6, -10.78], rotY: Math.PI },
-  { id: 'rotunda_slot_06', slotIndex: 56, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall East Bay', pos: [8.0, 2.6, -10.78], rotY: Math.PI },
-  { id: 'rotunda_slot_07', slotIndex: 57, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall West Bay', pos: [-9.5, 2.6, 10.78], rotY: 0 },
-  { id: 'rotunda_slot_08', slotIndex: 58, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall East Bay', pos: [9.5, 2.6, 10.78], rotY: 0 },
+  { id: 'rotunda_slot_05', slotIndex: 55, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall West Bay', pos: [-8.0, 2.6, -10.78], rotY: 0 },
+  { id: 'rotunda_slot_06', slotIndex: 56, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'North Wall East Bay', pos: [8.0, 2.6, -10.78], rotY: 0 },
+  { id: 'rotunda_slot_07', slotIndex: 57, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall West Bay', pos: [-9.5, 2.6, 10.78], rotY: Math.PI },
+  { id: 'rotunda_slot_08', slotIndex: 58, hallId: 'rotunda', hallName: 'Central Rotunda', wallDescription: 'South Wall East Bay', pos: [9.5, 2.6, 10.78], rotY: Math.PI },
 
   // -----------------------------------------------------------------
   // GROUP D: WEST GALLERY CORRIDOR (Slots 59 - 63)
@@ -1399,9 +1399,9 @@ export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   // -----------------------------------------------------------------
   { id: 'corridor_west_slot_01', slotIndex: 59, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'North End Cap Wall', pos: [-16.5, 2.6, 19.78], rotY: Math.PI },
   { id: 'corridor_west_slot_02', slotIndex: 60, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'South End Cap Wall', pos: [-16.5, 2.6, -24.78], rotY: 0 },
-  { id: 'corridor_west_slot_03', slotIndex: 61, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall North Bay', pos: [-13.22, 2.6, 15.5], rotY: -Math.PI / 2 },
-  { id: 'corridor_west_slot_04', slotIndex: 62, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall South Bay 1', pos: [-13.22, 2.6, -15.0], rotY: -Math.PI / 2 },
-  { id: 'corridor_west_slot_05', slotIndex: 63, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall South Bay 2', pos: [-13.22, 2.6, -21.0], rotY: -Math.PI / 2 },
+  { id: 'corridor_west_slot_03', slotIndex: 61, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall North Bay', pos: [-13.22, 2.6, 17.5], rotY: -Math.PI / 2 },
+  { id: 'corridor_west_slot_04', slotIndex: 62, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall South Bay 1', pos: [-13.22, 2.6, -13.5], rotY: -Math.PI / 2 },
+  { id: 'corridor_west_slot_05', slotIndex: 63, hallId: 'corridor_west', hallName: 'West Gallery Corridor', wallDescription: 'East Wall South Bay 2', pos: [-13.22, 2.6, -18.0], rotY: -Math.PI / 2 },
 
   // -----------------------------------------------------------------
   // GROUP E: EAST GALLERY CORRIDOR (Slots 64 - 68)
@@ -1409,34 +1409,34 @@ export const CANONICAL_WALL_SLOTS: WallSlot[] = [
   // -----------------------------------------------------------------
   { id: 'corridor_east_slot_01', slotIndex: 64, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'North End Cap Wall', pos: [16.5, 2.6, 19.78], rotY: Math.PI },
   { id: 'corridor_east_slot_02', slotIndex: 65, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'South End Cap Wall', pos: [16.5, 2.6, -24.78], rotY: 0 },
-  { id: 'corridor_east_slot_03', slotIndex: 66, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall North Bay', pos: [13.22, 2.6, 15.5], rotY: Math.PI / 2 },
-  { id: 'corridor_east_slot_04', slotIndex: 67, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall South Bay 1', pos: [13.22, 2.6, -15.0], rotY: Math.PI / 2 },
-  { id: 'corridor_east_slot_05', slotIndex: 68, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall South Bay 2', pos: [13.22, 2.6, -21.0], rotY: Math.PI / 2 },
+  { id: 'corridor_east_slot_03', slotIndex: 66, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall North Bay', pos: [13.22, 2.6, 17.5], rotY: Math.PI / 2 },
+  { id: 'corridor_east_slot_04', slotIndex: 67, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall South Bay 1', pos: [13.22, 2.6, -13.5], rotY: Math.PI / 2 },
+  { id: 'corridor_east_slot_05', slotIndex: 68, hallId: 'corridor_east', hallName: 'East Gallery Corridor', wallDescription: 'West Wall South Bay 2', pos: [13.22, 2.6, -18.0], rotY: Math.PI / 2 },
 
   // -----------------------------------------------------------------
   // GROUP F: STATE NORTH HALLWAY (Slots 69 - 72)
   // Hall: corridor_north, Center: [0, 0, -20], Size: [12, 6, 18]
   // -----------------------------------------------------------------
-  { id: 'corridor_north_slot_01', slotIndex: 69, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'West Wall South Bay', pos: [-5.78, 2.6, -13.5], rotY: Math.PI / 2 },
-  { id: 'corridor_north_slot_02', slotIndex: 70, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'West Wall North Bay', pos: [-5.78, 2.6, -26.5], rotY: Math.PI / 2 },
-  { id: 'corridor_north_slot_03', slotIndex: 71, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'East Wall South Bay', pos: [5.78, 2.6, -13.5], rotY: -Math.PI / 2 },
-  { id: 'corridor_north_slot_04', slotIndex: 72, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'East Wall North Bay', pos: [5.78, 2.6, -26.5], rotY: -Math.PI / 2 },
+  { id: 'corridor_north_slot_01', slotIndex: 69, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'West Wall South Bay', pos: [-5.78, 2.6, -12.8], rotY: Math.PI / 2 },
+  { id: 'corridor_north_slot_02', slotIndex: 70, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'West Wall North Bay', pos: [-5.78, 2.6, -27.2], rotY: Math.PI / 2 },
+  { id: 'corridor_north_slot_03', slotIndex: 71, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'East Wall South Bay', pos: [5.78, 2.6, -12.8], rotY: -Math.PI / 2 },
+  { id: 'corridor_north_slot_04', slotIndex: 72, hallId: 'corridor_north', hallName: 'State North Hallway', wallDescription: 'East Wall North Bay', pos: [5.78, 2.6, -27.2], rotY: -Math.PI / 2 },
 
   // -----------------------------------------------------------------
   // GROUP G: GRAND SOVEREIGN CORRIDOR (Slots 73 - 76)
   // Hall: passage_final, Center: [0, 0, -53], Size: [12, 6, 12]
   // -----------------------------------------------------------------
-  { id: 'passage_final_slot_01', slotIndex: 73, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'West Wall South Bay', pos: [-5.78, 2.6, -56.0], rotY: Math.PI / 2 },
-  { id: 'passage_final_slot_02', slotIndex: 74, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'West Wall North Bay', pos: [-5.78, 2.6, -50.0], rotY: Math.PI / 2 },
-  { id: 'passage_final_slot_03', slotIndex: 75, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'East Wall South Bay', pos: [5.78, 2.6, -56.0], rotY: -Math.PI / 2 },
-  { id: 'passage_final_slot_04', slotIndex: 76, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'East Wall North Bay', pos: [5.78, 2.6, -50.0], rotY: -Math.PI / 2 },
+  { id: 'passage_final_slot_01', slotIndex: 73, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'West Wall South Bay', pos: [-5.78, 2.6, -57.0], rotY: Math.PI / 2 },
+  { id: 'passage_final_slot_02', slotIndex: 74, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'West Wall North Bay', pos: [-5.78, 2.6, -49.0], rotY: Math.PI / 2 },
+  { id: 'passage_final_slot_03', slotIndex: 75, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'East Wall South Bay', pos: [5.78, 2.6, -57.0], rotY: -Math.PI / 2 },
+  { id: 'passage_final_slot_04', slotIndex: 76, hallId: 'passage_final', hallName: 'Grand Sovereign Corridor', wallDescription: 'East Wall North Bay', pos: [5.78, 2.6, -49.0], rotY: -Math.PI / 2 },
 
   // -----------------------------------------------------------------
   // GROUP H: GRAND SOVEREIGN HALL / THRONE GALLERY (Slots 77 - 78)
   // Hall: final_hall, Center: [0, 0, -68], Size: [24, 7, 18]
   // -----------------------------------------------------------------
-  { id: 'final_hall_slot_07', slotIndex: 77, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'South Wall West Bay', pos: [-8.0, 2.6, -59.22], rotY: 0 },
-  { id: 'final_hall_slot_08', slotIndex: 78, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'South Wall East Bay', pos: [8.0, 2.6, -59.22], rotY: 0 },
+  { id: 'final_hall_slot_07', slotIndex: 77, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'South Wall West Bay', pos: [-10.0, 2.6, -59.22], rotY: Math.PI },
+  { id: 'final_hall_slot_08', slotIndex: 78, hallId: 'final_hall', hallName: 'The Grand Sovereign Hall', wallDescription: 'South Wall East Bay', pos: [10.0, 2.6, -59.22], rotY: Math.PI },
 
   // -----------------------------------------------------------------
   // GROUP I: EXHIBITION HALL PORTAL RETURN WALL PIERS (Slots 79 - 84)
